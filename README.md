@@ -9,8 +9,8 @@ The repo contains the setup for a simple REST application using JAX-RS.
 
 ### What API does this project implement? ###
 
-* The project requirements are [ here ] (http://cs.iit.edu/~virgil/cs445/mail.spring2022/sample-rest-code/requirements.html)
-* The API definition for the project is [ here ] (http://cs.iit.edu/~virgil/cs445/mail.spring2022/sample-rest-code/api.html)
+* The project requirements are [here](http://cs.iit.edu/~virgil/cs445/mail.spring2022/sample-rest-code/requirements.html)
+* The API definition for the project is [here](http://cs.iit.edu/~virgil/cs445/mail.spring2022/sample-rest-code/api.html)
 
 ### How do I get set up? ###
 
@@ -64,7 +64,7 @@ cd 2022-rest-jaxrs-lamp/Rlamp
 
 ```
 ./gradlew build
-``` 
+```
 You'll find basic coverage information under `lib/build/reports/tests/test/index.html`
 
 If you want detailed unit test coverage then execute the jacocoTestReport task:
@@ -83,9 +83,9 @@ The html coverage report is available at `lib/build/reports/jacoco/test/html/ind
 * Select Manager App; if you get an error you may have to edit `/opt/tomcat/conf/tomcat-users.xml`
 * Scroll down the page to the 'WAR file to deploy' section and Browse to the war file created by the 'build' task, should be at `lib/build/libs/rest-lamp.war`, select it and then press 'Open'
 * Press 'Deploy'
-* Verify that everything is ok by pointing your browser to `http://localhost:8080/rest-lamp/api/demo/cat`.  Alternatively you could do
+* Verify that everything is ok by pointing your browser to `http://localhost:8080/rest-lamp/api/demo/lamps`.  Alternatively you could do
 ```
-curl -i "http://localhost:8080/rest-lamp/api/demo/cat"
+curl -i "http://localhost:8080/rest-lamp/api/demo/lamps"
 ```
 which will print both the response HTTP header and the body.
 
