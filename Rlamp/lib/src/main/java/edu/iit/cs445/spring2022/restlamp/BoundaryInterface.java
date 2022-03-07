@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public interface BoundaryInterface {
     List<Lamp> getAllLamps();
-    Lamp createLamp();
+    Lamp createLamp(Lamp il);
     Lamp getLampDetail(UUID lid);
     void turnLampOn(UUID lid);
     void turnLampOff(UUID lid);

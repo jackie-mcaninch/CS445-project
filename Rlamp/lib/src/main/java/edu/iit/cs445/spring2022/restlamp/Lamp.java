@@ -9,6 +9,11 @@ public class Lamp {
     public Lamp() {
         this.ID = UUID.randomUUID();
     }
+    
+    public Lamp(Lamp il) {
+        this.ID = UUID.randomUUID();
+        this.ison = il.ison;
+    }
 
     public boolean isOn() {
         return ison;

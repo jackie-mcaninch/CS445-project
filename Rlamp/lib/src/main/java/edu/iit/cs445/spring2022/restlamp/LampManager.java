@@ -13,8 +13,8 @@ public class LampManager implements BoundaryInterface {
         return(Lamps);
     }
 
-    public Lamp createLamp() {
-        Lamp l= new Lamp();
+    public Lamp createLamp(Lamp il) {
+        Lamp l= new Lamp(il);
         Lamps.add(l);
         return(l);
     }

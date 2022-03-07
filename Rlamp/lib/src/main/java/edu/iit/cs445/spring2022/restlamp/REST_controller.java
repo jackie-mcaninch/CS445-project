@@ -9,8 +9,8 @@ import com.google.gson.GsonBuilder;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 
-// Pingable at http://localhost:8080/JaxrsRestLamp/api/demo/lamps
-//   JaxrsRestLamp:	the name of the WAR file, see the gradle.build file
+// Pingable at http://localhost:8080/rest-lamp/api/demo/lamps
+//   rest-lamp:		the basename of the WAR file, see the gradle.build file
 //   api:			see the @ApplicationPath annotation in LampDemo.java
 //   demo:			see the @Path annotation *above* the REST_controller declaration in this file
 //   lamps:			see the @Path declaration above the first @GET in this file
@@ -33,11 +33,13 @@ public class REST_controller {
     
     @Path("/lamps")
     @POST
-    public Response makeLamp(@Context UriInfo uriInfo) {
+    public Response makeLamp(@Context UriInfo uriInfo, String json) {
         UUID id;
         // calls the "Create Lamp" use case
-        Lamp l = bi.createLamp();
-
+        Gson gs = new Gson();
+        Lamp il = gs.fromJson(json, Lamp.class);
+        Lamp l = bi.createLamp(il);
+        
         id = l.getID();
         Gson gson = new Gson();
         String s = gson.toJson(l);
