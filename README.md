@@ -89,6 +89,21 @@ curl -i "http://localhost:8080/rest-lamp/api/demo/lamps"
 ```
 which will print both the response HTTP header and the body.
 
+### Run the Postman test suite
+
+* Launch Postman. If this is the first time you're using the tool, select "Workspaces" from the menu on the upper left and then press "Create Workspace". Name the workspace something meaningful, such as "cs445 REST Lamp Project", select "Personal" for Visibility and then press "Create Workspace".
+* Select the newly created workspace from the "Workspaces" menu. The name of the workspace will be visible in the upper left corner, below the Home menu item.
+* Go to "File > Import", select "Link" from the top of the box and enter the following link: https://www.getpostman.com/collections/ca3291ca4ea9aa897206 and then press "Continue" and "Import". On the left pane select the "Collections" tab: you should see a collection called "REST Lamp Tests".
+* Create an environment in which to run the automated suite:
+  + Press the "New" button in the upper left corner of the main Postman's screen and select "Environment" for the menu.
+  + Choose a name for the new environment, such as "cs445 REST Lamp - localhost" and create a variable named base_url of type 'default' and with the Initial and Current Values of http://localhost:8080/rest-lamp/api/demo, then press "Save".
+* Start the server that accepts and responds to REST requests for your application. The test scripts will be running against the base URL defined by the base_url variable.
+* Run the automated test suite:
+  + Select the "Buy Nothing Tests" from Collections.
+  + Hover over the "Buy Nothing Tests" name, press the ellipsis on the right of the name, and select "Run Collection" from that menu.
+  Make sure the "cs445 REST Lamp - localhost" is selected from the pull down menu in the upper right.
+  + Click on the blue "Run Buy Nothing Tests" to find out how many of the tests are passing.
+
 
 ### Who do I talk to? ###
 
