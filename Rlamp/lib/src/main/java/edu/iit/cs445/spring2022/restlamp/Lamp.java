@@ -3,15 +3,15 @@ package edu.iit.cs445.spring2022.restlamp;
 import java.util.UUID;
 
 public class Lamp {
-    private UUID ID;
+    private String id;
     private boolean ison;
 
     public Lamp() {
-        this.ID = UUID.randomUUID();
+        this.id = UUID.randomUUID().toString();
     }
     
     public Lamp(Lamp il) {
-        this.ID = UUID.randomUUID();
+        this.id = UUID.randomUUID().toString();
         this.ison = il.ison;
     }
 
@@ -27,16 +27,16 @@ public class Lamp {
         this.ison = false;
     }
 
-    public boolean matchesId(UUID lid) {
-        return(lid.equals(this.ID));
+    public boolean matchesId(String lid) {
+        return(lid.equals(this.id));
     }
 
     public boolean isNil() {
         return false;
     }
 
-    public UUID getID() {
-        return this.ID;
+    public String getID() {
+        return this.id;
     }
     
     protected void updateOnOff(boolean onoff) {

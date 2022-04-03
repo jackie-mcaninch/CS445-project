@@ -19,16 +19,16 @@ public class LampManager implements BoundaryInterface {
         return(l);
     }
 
-    public Lamp getLampDetail(UUID lid) {
+    public Lamp getLampDetail(String lid) {
         return(findById(lid));
     }
 
-    public void turnLampOn(UUID lid) {
+    public void turnLampOn(String lid) {
         Lamp l = findById(lid);
         l.turnOn();
     }
 
-    public void turnLampOff(UUID lid) {
+    public void turnLampOff(String lid) {
         Lamp l = findById(lid);
         l.turnOff();
     }
@@ -36,12 +36,12 @@ public class LampManager implements BoundaryInterface {
     // Will be used by PUT; keep the ID of the resource, update "ison" from
     // the payload submitted by PUT.
     
-    public void replaceLamp(UUID lid, Lamp il) {
+    public void replaceLamp(String lid, Lamp il) {
     	Lamp l = findById(lid);
     	l.updateOnOff(il.isOn());
     }
     
-    public void deleteLamp(UUID lid) throws NoSuchElementException {
+    public void deleteLamp(String lid) throws NoSuchElementException {
     	Lamp l = findById(lid);
     	if (l.isNil()) {
     		throw new NoSuchElementException();
@@ -50,7 +50,7 @@ public class LampManager implements BoundaryInterface {
     	}
     }
 
-    private Lamp findById(UUID lid) {
+    private Lamp findById(String lid) {
     	System.out.println(lid);
         Iterator<Lamp> li = Lamps.listIterator();
         while(li.hasNext()) {

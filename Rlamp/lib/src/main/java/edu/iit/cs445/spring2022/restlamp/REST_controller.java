@@ -34,7 +34,7 @@ public class REST_controller {
     @Path("/lamps")
     @POST
     public Response makeLamp(@Context UriInfo uriInfo, String json) {
-        UUID id;
+        String id;
         // calls the "Create Lamp" use case
         Gson gs = new Gson();
         Lamp il = gs.fromJson(json, Lamp.class);
@@ -53,7 +53,7 @@ public class REST_controller {
 
     @Path("/lamps/{id}")
     @GET
-    public Response getSpecificLamp(@PathParam("id") UUID lid) {
+    public Response getSpecificLamp(@PathParam("id") String lid) {
         // call the "Get Lamp Detail" use case
         Lamp l = bi.getLampDetail(lid);
         if (l.isNil()) {
@@ -68,17 +68,18 @@ public class REST_controller {
 
     @Path("/lamps/{id}")
     @PUT
-    public Response controlLamp(@PathParam("id") UUID lid, String json) {
+    public Response controlLamp(@PathParam("id") String lid, String json) {
         // call the "Update lamp" use case
         Gson gson = new Gson();
         Lamp il = gson.fromJson(json, Lamp.class);
         bi.replaceLamp(lid, il);
-        return Response.ok().build();
+        //return Response.ok().build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
     
     @Path("/lamps/{id}")
     @DELETE
-    public Response deleteLamp(@PathParam("id") UUID lid) {
+    public Response deleteLamp(@PathParam("id") String lid) {
         // call the "Delete Lamp" use case
     	try {
     		bi.deleteLamp(lid);
