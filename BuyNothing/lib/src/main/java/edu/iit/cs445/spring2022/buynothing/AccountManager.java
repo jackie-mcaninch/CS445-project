@@ -1,12 +1,14 @@
 package edu.iit.cs445.spring2022.buynothing;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 
-public class AccountManager implements BNBoundaryInterface {
+public class AccountManager {
 	private static List<Account> allAccounts = new ArrayList<Account>();
 	
 	public List<Account> getAllAccounts() {
@@ -53,7 +55,34 @@ public class AccountManager implements BNBoundaryInterface {
     }
     
     public Account viewAccount(String acc_id) {
-    	
+    	Account a = findByID(acc_id);
+    	if (a.isNil()) {
+    		throw new NoSuchElementException();
+    	}
+    	return a;
+    }
+    
+    public List<Account> searchAccounts(String key, String start_date, String end_date) {
+    	if (key.equals(null)) return allAccounts;
+    	List<Account> filteredAccounts = new ArrayList<Account>();
+    	try {
+    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Iterator<Account> acc_iter = allAccounts.listIterator();
+        	while (acc_iter.hasNext()) {
+        		Account a = acc_iter.next();
+        		if (a.checkForKeyword(key)) {
+        			Date created = a.getDateCreated();
+        			if (!created.after(end) && !created.before(start)) {
+        				filteredAccounts.add(a);
+        			}
+        		}
+        	}
+        	return filteredAccounts;
+    	}
+    	catch (Exception e) {
+    		throw new IllegalArgumentException();
+    	}
     }
     
     public Account findByID(String acc_id) {

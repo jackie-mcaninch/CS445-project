@@ -49,5 +49,5 @@ tasks.named('test') {
 }
 
 war {
-   archiveName 'rest-lamp.war'
+   archiveName 'buy-nothing.war'
 }

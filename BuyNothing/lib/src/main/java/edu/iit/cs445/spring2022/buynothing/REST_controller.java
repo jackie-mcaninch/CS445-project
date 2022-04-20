@@ -1,6 +1,6 @@
 package edu.iit.cs445.spring2022.buynothing;
 
-import java.util.UUID;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,12 +19,12 @@ import jakarta.ws.rs.core.*;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class REST_controller {
-    private BNBoundaryInterface accbi = new AccountManager();
-    private BNBoundaryInterface askbi = new AskManager();
-    private BNBoundaryInterface givbi = new GiveManager();
-    private BNBoundaryInterface thkbi = new ThankManager();
-    private BNBoundaryInterface notbi = new NoteManager();
-    private BNBoundaryInterface repbi = new ReportManager();
+    private AccountManager 	accman = new AccountManager();
+    private AskManager 		askman = new AskManager();
+    private GiveManager 	givman = new GiveManager();
+    private ThankManager 	thkman = new ThankManager();
+    private NoteManager 	notman = new NoteManager();
+    private ReportManager 	repman = new ReportManager();
     
     @Path("/accounts")
     @POST
@@ -33,7 +33,7 @@ public class REST_controller {
         // creates a new account
         Gson gs = new Gson();
         Account raw_account = gs.fromJson(json, Account.class);
-        Account a = bbi.createAccount(raw_account);
+        Account a = accman.createAccount(raw_account);
         
         id = a.getID();
         Gson gson = new Gson();
@@ -50,9 +50,9 @@ public class REST_controller {
     @GET
     public Response activateAccount(@PathParam("uid") String acc_id) {
     	//Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    	//TODO: convert error message into json
+    	//TODO: convert error message into json?
     	try {
-    		int err_code = bbi.activate(acc_id);
+    		int err_code = accman.activateAccount(acc_id);
     		switch (err_code) {
     			case 0: return Response.status(Response.Status.OK).build();
     			case -1: return Response.status(Response.Status.BAD_REQUEST).entity("Account needs a name before activation.").build();
@@ -74,7 +74,7 @@ public class REST_controller {
     	Gson gson = new Gson();
     	Account new_account = gson.fromJson(json, Account.class);
 	    try {
-    		int err_code = bbi.replace(acc_id, new_account);
+    		int err_code = accman.replaceAccount(acc_id, new_account);
 	        switch (err_code) {
 		        case 0: return Response.status(Response.Status.OK).build();
 				case -1: return Response.status(Response.Status.BAD_REQUEST).entity("Account is missing a name.").build();
@@ -82,7 +82,7 @@ public class REST_controller {
 				case -3: return Response.status(Response.Status.BAD_REQUEST).entity("Account is missing a zip code.").build();
 				case -4: return Response.status(Response.Status.BAD_REQUEST).entity("Account is missing a phone number.").build();
 				case -5: return Response.status(Response.Status.BAD_REQUEST).entity("Account is missing a picture URL.").build();
-				default: return Response.status(Response.Status.OK).build();
+				default: return Response.status(Response.Status.BAD_REQUEST).entity("An unexpected error occurred!").build();
 	        }
 	    }
 	    catch (Exception e) {
@@ -92,49 +92,43 @@ public class REST_controller {
     
     @Path("/accounts/{uid}")
     @DELETE
-    public Response deleteLamp(@PathParam("uid") String acc_id) {
+    public Response deleteAccount(@PathParam("uid") String acc_id) {
         try {
-    		bbi.deleteLamp(acc_id);
+    		accman.deleteAccount(acc_id);
     	    return Response.status(Response.Status.NO_CONTENT).build();
     	} catch (Exception e) {
-            // return a 404
-            return Response.status(Response.Status.NOT_FOUND).entity("Entity not found for ID: " + lid).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Entity not found for ID: " + acc_id).build();
         } 
     }
     
     @Path("/accounts")
     @GET
     public Response getAllAccounts() {
-        // returns JSON of all accounts created
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = gson.toJson(bbi.getAllAccounts());
-        return Response.status(Response.Status.OK).build();
+        String s = gson.toJson(accman.getAllAccounts());
+        return Response.status(Response.Status.OK).entity(s).build();
     }
     
-
-
-    @Path("/accounts/{id}")
+    @Path("/accounts/{uid}")
     @GET
-    public Response getSpecificAccount(@PathParam("id") String acc_id) {
-        // call the "Get Lamp Detail" use case
-        Account a = bbi.getAccountDetail(acc_id);
-        if (a.isNil()) {
-            // return a 404
-            return Response.status(Response.Status.NOT_FOUND).entity("Entity not found for ID: " + acc_id).build();
-        } else {
+    public Response viewAccount(@PathParam("uid") String acc_id) {
+    	try {
+            Account a = accman.viewAccount(acc_id);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String s = gson.toJson(a);
-            return Response.ok(s).build();
+            return Response.status(Response.Status.OK).entity(s).build();
+    	} catch (Exception e) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Entity not found for ID: " + acc_id).build();
         }
     }
 
-    @Path("/accounts/{id}")
-    @PUT
-    public Response controlAccount(@PathParam("id") String acc_id, String json) {
-        // call the "Update lamp" use case
-        Gson gson = new Gson();
-        //return Response.ok().build();
-        return Response.status(Response.Status.NO_CONTENT).build();
+    @Path("/accounts?key=keyword{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
+    @GET
+    public Response searchAccounts(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {
+    	List<Account> a_list = accman.searchAccounts(key, start, end);
+    	Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    	String s = gson.toJson(a_list);
+    	return Response.status(Response.Status.OK).entity(s).build();
     }
 }
 
