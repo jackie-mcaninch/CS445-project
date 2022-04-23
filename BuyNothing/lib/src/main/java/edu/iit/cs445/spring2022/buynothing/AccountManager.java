@@ -10,44 +10,36 @@ import java.util.NoSuchElementException;
 
 public class AccountManager {
 	private static List<Account> allAccounts = new ArrayList<Account>();
-	
-	public List<Account> getAllAccounts() {
-		return allAccounts;
-	}
-	
+
 	public Account createAccount(Account a) {
+		checkMissingInfo(a);
 		Account newAccount = new Account(a);
 		allAccounts.add(newAccount);
 		return newAccount;
 	}
 	
-	public int activateAccount(String acc_id) {
+	public void activateAccount(String acc_id) {
 		Account a = findByID(acc_id);
-		int err_code = checkData(a);
-		if (err_code != 0) return err_code;
+		if (a.isNil()) throw new NoSuchElementException();
+		checkMissingInfo(a);
 		a.activate();
-		return 0;
 	}
 	
-    public int replaceAccount(String old_id, Account anew) {
+    public void updateAccount(String old_id, Account anew) {
     	Account aold = findByID(old_id);
-    	int err_code = checkData(anew);
-    	if (err_code != 0) return err_code;
+    	if (aold.isNil()) throw new NoSuchElementException();
+    	checkMissingInfo(anew);
     	aold.updateName(anew.getName());
     	aold.updateAddress(anew.getStreet(), anew.getZip());
     	aold.updatePhone(anew.getPhone());
     	aold.updatePicture(anew.getPicture());
-    	return 0;
     }
     
     public void deleteAccount(String acc_id) {
     	Account a = findByID(acc_id);
-    	if (a.isNil()) {
-    		throw new NoSuchElementException();
-    	}
-    	else {
-    		allAccounts.remove(a);
-    	}
+    	if (a.isNil()) throw new NoSuchElementException();
+		a.deactivate();
+		allAccounts.remove(a);
     }
     
     public List<Account> viewAllAccounts() {
@@ -56,9 +48,7 @@ public class AccountManager {
     
     public Account viewAccount(String acc_id) {
     	Account a = findByID(acc_id);
-    	if (a.isNil()) {
-    		throw new NoSuchElementException();
-    	}
+    	if (a.isNil()) throw new NoSuchElementException();
     	return a;
     }
     
@@ -68,6 +58,7 @@ public class AccountManager {
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
     		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		if (!start.before(end)) throw new AssertionError();
     		Iterator<Account> acc_iter = allAccounts.listIterator();
         	while (acc_iter.hasNext()) {
         		Account a = acc_iter.next();
@@ -94,15 +85,23 @@ public class AccountManager {
     	return (new NullAccount());
     }
     
-    public int checkData(Account a) {
-    	if (a.isNil()) {
-			throw new NoSuchElementException();
-		}
-		if (a.getName().equals(null)) return -1;
-		if (a.getStreet().equals(null)) return -2;
-		if (a.getZip().equals(null)) return -3;
-		if (a.getPhone().equals(null)) return -4;
-		if (a.getPicture().equals(null)) return -5;
-		return 0;
+    public void checkMissingInfo(Account a) {
+    	if (a.getName().equals(null) || 
+    		a.getStreet().equals(null) ||
+    		a.getZip().equals(null) || 
+    		a.getPhone().equals(null) || 
+    		a.getPicture().equals(null)) {
+    			throw new AssertionError();
+    		}
+    }
+    
+    public String assessMissingInfo(String acc_id) {
+    	Account a = findByID(acc_id);
+		if (a.getName().equals(null)) return "Name is missing!";
+		if (a.getStreet().equals(null)) return "Street is missing!";
+		if (a.getZip().equals(null)) return "Zip code is missing!";
+		if (a.getPhone().equals(null)) return "Phone number is missing!";
+		if (a.getPicture().equals(null)) return "Picture is missing!";
+		return "Something went wrong.";
     }
 }

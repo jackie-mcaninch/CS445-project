@@ -40,10 +40,6 @@ public class Account extends BuyNothingObj {
 		this.picture = new_picture;
 	}
 	
-	public boolean matchesID(String accountID) {
-		return (accountID.equals(this.id));
-	}
-	
 	public String getID() {
 		return this.id;
 	}
@@ -53,7 +49,7 @@ public class Account extends BuyNothingObj {
 	}
 	
 	public Date getDateCreated() {
-		return this.date_created;
+		return this.dateCreated;
 	}
 	
 	public String getName() {
@@ -74,6 +70,10 @@ public class Account extends BuyNothingObj {
 	
 	public String getPicture() {
 		return this.picture;
+	}
+	
+	public boolean matchesID(String accountID) {
+		return (accountID.equals(this.id));
 	}
 	
 	public boolean checkForKeyword(String key) {

@@ -1,5 +1,5 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 public class GiveManager {
-
+	private static final String[] TYPES = {"gift", "service", "lend", "share"};
 }
