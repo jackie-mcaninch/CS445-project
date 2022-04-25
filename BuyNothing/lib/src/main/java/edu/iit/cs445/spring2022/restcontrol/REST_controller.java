@@ -48,7 +48,7 @@ public class REST_controller {
         }
         // return 400 if required data is missing
         catch (AssertionError e) {
-        	String err_msg = accman.assessMissingInfo(raw_account.getID());
+        	String err_msg = accman.assessMissingInfo(raw_account);
         	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
         }
     }
@@ -69,7 +69,8 @@ public class REST_controller {
     	}
     	// return 400 if required data is missing
     	catch (AssertionError e) {
-    		String err_msg = accman.assessMissingInfo(acc_id);
+    		Account a = accman.findByID(acc_id);
+    		String err_msg = accman.assessMissingInfo(a);
     		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
     	}
     }
@@ -92,7 +93,7 @@ public class REST_controller {
 	    }
 	    // return 400 if required data is missing
 	    catch (AssertionError e) {
-	    	String err_msg = accman.assessMissingInfo(new_account.getID());
+	    	String err_msg = accman.assessMissingInfo(new_account);
 	    	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
 	    }
     }
@@ -198,7 +199,7 @@ public class REST_controller {
         }
         // return 400 if required data is missing
         catch (AssertionError e) {
-        	String err_msg = askman.assessMissingInfo(raw_ask.getID());
+        	String err_msg = askman.assessMissingInfo(raw_ask);
         	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
         }
         // return 400 if type is invalid
@@ -253,7 +254,7 @@ public class REST_controller {
 	    }
 	    // return 400 if required data is missing
 	    catch (AssertionError e) {
-	    	String err_msg = askman.assessMissingInfo(new_ask.getID());
+	    	String err_msg = askman.assessMissingInfo(new_ask);
 	    	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
 	    }
 	    // return 400 if wrong type

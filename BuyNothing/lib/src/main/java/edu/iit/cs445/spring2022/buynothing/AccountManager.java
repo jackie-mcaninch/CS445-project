@@ -1,5 +1,6 @@
 package edu.iit.cs445.spring2022.buynothing;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class AccountManager {
 		allAccounts.remove(a);
     }
     
-    public List<Account> viewAllAccounts() {
+    public List<Account> viewAllAccounts() {         
     	return allAccounts;
     }
     
@@ -52,8 +53,12 @@ public class AccountManager {
     	return a;
     }
     
+    public void clearAllAccounts() {
+    	allAccounts.clear();
+    }
+    
     public List<Account> searchAccounts(String key, String start_date, String end_date) {
-    	if (key.equals(null)) return allAccounts;
+    	if (key==null) return allAccounts;
     	List<Account> filteredAccounts = new ArrayList<Account>();
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
@@ -71,7 +76,7 @@ public class AccountManager {
         	}
         	return filteredAccounts;
     	}
-    	catch (Exception e) {
+    	catch (ParseException e) {
     		throw new IllegalArgumentException();
     	}
     }
@@ -80,28 +85,27 @@ public class AccountManager {
     	Iterator<Account> acc_iter = allAccounts.listIterator();
     	while (acc_iter.hasNext()) {
     		Account a = acc_iter.next();
-    		if (a.matchesID(uid)) return (a);
+    		if (a.matchesID(uid)) return a;
     	}
     	return (new NullAccount());
     }
     
     public void checkMissingInfo(Account a) {
-    	if (a.getName().equals(null) || 
-    		a.getStreet().equals(null) ||
-    		a.getZip().equals(null) || 
-    		a.getPhone().equals(null) || 
-    		a.getPicture().equals(null)) {
+    	if (a.getName()==null || 
+    		a.getStreet()==null ||
+    		a.getZip()==null || 
+    		a.getPhone()==null || 
+    		a.getPicture()==null) {
     			throw new AssertionError();
     		}
     }
     
-    public String assessMissingInfo(String uid) {
-    	Account a = findByID(uid);
-		if (a.getName().equals(null)) return "Name is missing!";
-		if (a.getStreet().equals(null)) return "Street is missing!";
-		if (a.getZip().equals(null)) return "Zip code is missing!";
-		if (a.getPhone().equals(null)) return "Phone number is missing!";
-		if (a.getPicture().equals(null)) return "Picture is missing!";
+    public String assessMissingInfo(Account a) {
+		if (a.getName()==null) return "Name is missing!";
+		if (a.getStreet()==null) return "Street is missing!";
+		if (a.getZip()==null) return "Zip code is missing!";
+		if (a.getPhone()==null) return "Phone number is missing!";
+		if (a.getPicture()==null) return "Picture is missing!";
 		return "Something went wrong.";
     }
 }

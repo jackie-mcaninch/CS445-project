@@ -134,8 +134,7 @@ public class AskManager {
     	}
     }
     
-    public String assessMissingInfo(String aid) {
-    	Ask a = findByID(aid);
+    public String assessMissingInfo(Ask a) {
 		if (a.getAccountID().equals(null)) return "Account ID is missing!";
 		if (a.getType().equals(null)) return "Type is missing!";
 		if (a.getDescription().equals(null)) return "Description is missing!";

@@ -1,6 +1,7 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 import java.util.Date;
+import java.util.NoSuchElementException;
 
 public class Account extends BuyNothingObj {
 	private String name;
@@ -77,8 +78,9 @@ public class Account extends BuyNothingObj {
 	}
 	
 	public boolean checkForKeyword(String key) {
-		String first_name = this.name.split(" ", 1)[0];
-		String last_name = this.name.split(" ", 1)[1];
+		String[] split_name = this.name.split(" ");
+		String first_name = split_name[0];
+		String last_name = split_name[1];
 		String address = String.format("%s %s", this.street, this.zip);
 		if (key.equalsIgnoreCase(first_name)) return true;
 		if (key.equalsIgnoreCase(last_name)) return true;
@@ -86,6 +88,17 @@ public class Account extends BuyNothingObj {
 		if (key.equalsIgnoreCase(phone)) return true;
 		return false;
 		}
+    
+    public boolean equals(Account a) {
+    	if (a.isNil()) throw new NoSuchElementException();
+    	if (a.getName().equals(this.name) &&
+    		a.getStreet().equals(this.street) &&
+    		a.getZip().equals(this.zip) &&
+    		a.getPhone().equals(this.phone) &&
+    		a.getPicture().equals(this.picture))
+    		return true;
+    	else return false;
+    }
 	
 	public boolean isNil() {
 		return false;
