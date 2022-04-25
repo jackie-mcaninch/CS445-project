@@ -1,13 +1,12 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 public class Thank extends BuyNothingObj {
+	private String uid;
 	private String thankTo;
 	private String description;
 		
 	public Thank() {
 		super();
-		super.activate();
-		//TODO: only activate after all info is valid
 	}
 	
 	public Thank(Thank t) {
@@ -18,12 +17,20 @@ public class Thank extends BuyNothingObj {
 		this.description = t.getDescription();
 	}
 	
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
+	}
+	
 	public void updateThankTo(String new_tt) {
 		this.thankTo = new_tt;
 	}
 	
 	public void updateDescription(String new_description) {
 		this.description = new_description;
+	}
+	
+	public String getAccountID() {
+		return this.uid;
 	}
 	
 	public String getThankTo() {

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 
 public class Ask extends BuyNothingObj {
+	private String uid;
 	private String type;
 	private String description;
 	private Date startDate;
@@ -12,8 +13,6 @@ public class Ask extends BuyNothingObj {
 		
 	public Ask() {
 		super();
-		super.activate();
-		//TODO: only activate after all info is valid
 	}
 	
 	public Ask(Ask a) {
@@ -25,6 +24,10 @@ public class Ask extends BuyNothingObj {
 		this.startDate = a.getStartDate();
 		this.endDate = a.getEndDate();
 		this.extraZip = a.getExtraZip();	
+	}
+	
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
 	}
 	
 	public void updateType(String new_type) {
@@ -57,6 +60,10 @@ public class Ask extends BuyNothingObj {
 		this.extraZip = new_zips;
 	}
 	
+	public String getAccountID() {
+		return this.uid;
+	}
+	
 	public String getType() {
 		return this.type;
 	}
@@ -77,8 +84,12 @@ public class Ask extends BuyNothingObj {
 		return this.extraZip;
 	}
 
-	public boolean matchesID(String askID) {
-		return (askID.equals(this.id));
+	public boolean matchesID(String aid) {
+		return (aid.equals(this.id));
+	}
+	
+	public boolean matchesUserID(String uid) {
+		return (uid.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {

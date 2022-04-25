@@ -12,53 +12,74 @@ public class AskManager {
 	private static List<Ask> allAsks = new ArrayList<Ask>();
 	
 	public Ask createAsk(Ask a) {
+		checkMissingInfo(a);
+		checkType(a);
 		Ask newAsk = new Ask(a);
 		allAsks.add(newAsk);
+		a.activate();
 		return newAsk;
 	}
 	
-	public int activateAsk(String acc_id) {
-		Ask a = findByID(acc_id);
-		int err_code = checkData(a);
-		if (err_code != 0) return err_code;
-		a.activate();
-		return 0;
+	public Ask deactivateAsk(String aid) {
+		Ask a = findByID(aid);
+		if (a.isNil()) throw new NoSuchElementException();
+		a.deactivate();
+    	allAsks.remove(a);
+    	return a;
 	}
 	
-    public int replaceAsk(String old_id, Ask anew) {
+    public void updateAsk(String old_id, Ask anew) {
     	Ask aold = findByID(old_id);
-    	int err_code = checkData(anew);
-    	if (err_code != 0) return err_code;
-//    	aold.updateName(anew.getName());
-//    	aold.updateAddress(anew.getStreet(), anew.getZip());
-//    	aold.updatePhone(anew.getPhone());
-//    	aold.updatePicture(anew.getPicture());
-    	return 0;
+    	if (aold.isNil() || !aold.getActiveStatus()) throw new NoSuchElementException();
+    	checkMissingInfo(anew);
+    	checkType(anew);
+    	aold.updateAccountID(anew.getAccountID());
+    	aold.updateType(anew.getType());
+    	aold.updateDescription(anew.getDescription());
+    	SimpleDateFormat fmt = new SimpleDateFormat("YYYY-MM-DD");
+    	aold.updateStartDate(fmt.format(anew.getStartDate()));
+    	aold.updateEndDate(fmt.format(anew.getEndDate()));
+    	aold.updateExtraZip(anew.getExtraZip());
     }
     
-    public void deleteAsk(String acc_id) {
-    	Ask a = findByID(acc_id);
-    	if (a.isNil()) {
-    		throw new NoSuchElementException();
-    	}
-    	else {
-    		allAsks.remove(a);
-    	}
+    public void deleteAsk(String aid) {
+    	Ask a = findByID(aid);
+    	if (a.isNil()) throw new NoSuchElementException();
+    	allAsks.remove(a);
     }
     
-    public void deleteByID(String acc_id) {
-    	
+    public List<String> deleteByUID(String uid) {
+    	Iterator<Ask> ask_iter = allAsks.listIterator();
+    	List<String> deleted = new ArrayList<String>();
+    	while (ask_iter.hasNext()) {
+    		Ask a = ask_iter.next();
+    		if (a.getAccountID().equals(uid)) {
+    			deleteAsk(a.getID());
+        		deleted.add(a.getID());
+    		}
+    	}
+    	return deleted;
     }
     
     public List<Ask> viewAllAsks() {
     	return allAsks;
     }
     
-    public Ask viewAsk(String acc_id) {
-    	Ask a = findByID(acc_id);
-    	if (a.isNil()) {
-    		throw new NoSuchElementException();
+    public List<Ask> viewMyAsks(String uid, boolean isActive) {
+    	List<Ask> myAsks = new ArrayList<Ask>();
+    	Iterator<Ask> ask_iter = allAsks.listIterator();
+    	while (ask_iter.hasNext()) {
+    		Ask a = ask_iter.next();
+    		if (a.getAccountID().equals(uid) && a.getActiveStatus()==isActive) {
+    			myAsks.add(a);
+    		}
     	}
+    	return myAsks;
+    }
+    
+    public Ask viewAsk(String aid) {
+    	Ask a = findByID(aid);
+    	if (a.isNil()) throw new NoSuchElementException();
     	return a;
     }
     
@@ -68,9 +89,9 @@ public class AskManager {
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
     		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
-    		Iterator<Ask> acc_iter = allAsks.listIterator();
-        	while (acc_iter.hasNext()) {
-        		Ask a = acc_iter.next();
+    		Iterator<Ask> ask_iter = allAsks.listIterator();
+        	while (ask_iter.hasNext()) {
+        		Ask a = ask_iter.next();
         		if (a.checkForKeyword(key)) {
         			Date created = a.getDateCreated();
         			if (!created.after(end) && !created.before(start)) {
@@ -80,30 +101,45 @@ public class AskManager {
         	}
         	return filteredAsks;
     	}
+    	// Date cannot be parsed
     	catch (Exception e) {
     		throw new IllegalArgumentException();
     	}
     }
     
-    public Ask findByID(String acc_id) {
-    	Iterator<Ask> acc_iter = allAsks.listIterator();
-    	while (acc_iter.hasNext()) {
-    		Ask a = acc_iter.next();
-    		if (a.matchesID(acc_id)) return (a);
+    public Ask findByID(String aid) {
+    	Iterator<Ask> ask_iter = allAsks.listIterator();
+    	while (ask_iter.hasNext()) {
+    		Ask a = ask_iter.next();
+    		if (a.matchesID(aid)) return (a);
     	}
     	return (new NullAsk());
     }
     
-    public int checkData(Ask a) {
-    	if (a.isNil()) {
-			throw new NoSuchElementException();
-		}
-//		if (a.getName().equals(null)) return -1;
-//		if (a.getStreet().equals(null)) return -2;
-//		if (a.getZip().equals(null)) return -3;
-//		if (a.getPhone().equals(null)) return -4;
-//		if (a.getPicture().equals(null)) return -5;
-		return 0;
+    public void checkType(Ask a) {
+    	String myType = a.getType();
+    	for (String type : TYPES) {
+    		if (myType.equals(type)) return;
+    	}
+    	// specified type is not a valid identifier
+    	throw new IllegalArgumentException();
     }
-
+    
+    public void checkMissingInfo(Ask a) {
+    	if (a.getAccountID().equals(null) || 
+    		a.getType().equals(null) ||
+    		a.getDescription().equals(null) || 
+    		a.getStartDate().equals(null)) {
+    			throw new AssertionError();
+    	}
+    }
+    
+    public String assessMissingInfo(String aid) {
+    	Ask a = findByID(aid);
+		if (a.getAccountID().equals(null)) return "Account ID is missing!";
+		if (a.getType().equals(null)) return "Type is missing!";
+		if (a.getDescription().equals(null)) return "Description is missing!";
+		if (a.getStartDate().equals(null)) return "Start date is missing!";
+		return "Something went wrong.";
+    }
 }

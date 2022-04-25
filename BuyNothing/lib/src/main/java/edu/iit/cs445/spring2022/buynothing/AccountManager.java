@@ -18,8 +18,8 @@ public class AccountManager {
 		return newAccount;
 	}
 	
-	public void activateAccount(String acc_id) {
-		Account a = findByID(acc_id);
+	public void activateAccount(String uid) {
+		Account a = findByID(uid);
 		if (a.isNil()) throw new NoSuchElementException();
 		checkMissingInfo(a);
 		a.activate();
@@ -35,8 +35,8 @@ public class AccountManager {
     	aold.updatePicture(anew.getPicture());
     }
     
-    public void deleteAccount(String acc_id) {
-    	Account a = findByID(acc_id);
+    public void deleteAccount(String uid) {
+    	Account a = findByID(uid);
     	if (a.isNil()) throw new NoSuchElementException();
 		a.deactivate();
 		allAccounts.remove(a);
@@ -46,8 +46,8 @@ public class AccountManager {
     	return allAccounts;
     }
     
-    public Account viewAccount(String acc_id) {
-    	Account a = findByID(acc_id);
+    public Account viewAccount(String uid) {
+    	Account a = findByID(uid);
     	if (a.isNil()) throw new NoSuchElementException();
     	return a;
     }
@@ -76,11 +76,11 @@ public class AccountManager {
     	}
     }
     
-    public Account findByID(String acc_id) {
+    public Account findByID(String uid) {
     	Iterator<Account> acc_iter = allAccounts.listIterator();
     	while (acc_iter.hasNext()) {
     		Account a = acc_iter.next();
-    		if (a.matchesID(acc_id)) return (a);
+    		if (a.matchesID(uid)) return (a);
     	}
     	return (new NullAccount());
     }
@@ -95,8 +95,8 @@ public class AccountManager {
     		}
     }
     
-    public String assessMissingInfo(String acc_id) {
-    	Account a = findByID(acc_id);
+    public String assessMissingInfo(String uid) {
+    	Account a = findByID(uid);
 		if (a.getName().equals(null)) return "Name is missing!";
 		if (a.getStreet().equals(null)) return "Street is missing!";
 		if (a.getZip().equals(null)) return "Zip code is missing!";

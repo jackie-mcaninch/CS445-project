@@ -1,6 +1,7 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 public class Note extends BuyNothingObj {
+	private String uid;
 	private String toType;
 	private String toUserID;
 	private String toID;
@@ -8,8 +9,6 @@ public class Note extends BuyNothingObj {
 		
 	public Note() {
 		super();
-		super.activate();
-		//TODO: only activate after all info is valid
 	}
 	
 	public Note(Note n) {
@@ -20,6 +19,10 @@ public class Note extends BuyNothingObj {
 		this.toUserID = n.getToUserID();
 		this.toID = n.getToID();
 		this.description = n.getDescription();
+	}
+	
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
 	}
 	
 	public void updateToType(String new_totype) {
@@ -36,6 +39,10 @@ public class Note extends BuyNothingObj {
 	
 	public void updateDescription(String new_description) {
 		this.description = new_description;
+	}
+	
+	public String getAccountID() {
+		return this.uid;
 	}
 	
 	public String getToType() {

@@ -3,7 +3,8 @@ package edu.iit.cs445.spring2022.buynothing;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Give extends BuyNothingObj{
+public class Give extends BuyNothingObj {
+	private String uid;
 	private String type;
 	private String description;
 	private Date startDate;
@@ -12,8 +13,6 @@ public class Give extends BuyNothingObj{
 		
 	public Give() {
 		super();
-		super.activate();
-		//TODO: only activate after all info is valid
 	}
 	
 	public Give(Give g) {
@@ -25,6 +24,10 @@ public class Give extends BuyNothingObj{
 		this.startDate = g.getStartDate();
 		this.endDate = g.getEndDate();
 		this.extraZip = g.getExtraZip();	
+	}
+	
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
 	}
 	
 	public void updateType(String new_type) {
@@ -55,6 +58,10 @@ public class Give extends BuyNothingObj{
 	
 	public void updateExtraZip(String[] new_zips) {
 		this.extraZip = new_zips;
+	}
+	
+	public String getAccountID() {
+		return this.uid;
 	}
 	
 	public String getType() {
