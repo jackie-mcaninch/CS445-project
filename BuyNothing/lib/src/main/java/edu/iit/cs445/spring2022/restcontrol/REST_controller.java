@@ -343,7 +343,7 @@ public class REST_controller {
     	}
     }
     
-    // SEARCH ACCOUNTS
+    // SEARCH ASKS
     @Path("/asks?key=keyword{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
     @GET
     public Response searchAsks(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {

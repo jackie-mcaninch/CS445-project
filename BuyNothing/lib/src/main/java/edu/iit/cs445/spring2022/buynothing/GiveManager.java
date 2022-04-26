@@ -1,5 +1,6 @@
 package edu.iit.cs445.spring2022.buynothing;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -83,8 +84,12 @@ public class GiveManager {
     	return g;
     }
     
+    public void clearAllGives() {
+    	allGives.clear();
+    }
+    
     public List<Give> searchGives(String key, String start_date, String end_date) {
-    	if (key.equals(null)) return allGives;
+    	if (key==null) return allGives;
     	List<Give> filteredGives = new ArrayList<Give>();
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
@@ -102,7 +107,7 @@ public class GiveManager {
         	return filteredGives;
     	}
     	// Date cannot be parsed
-    	catch (Exception e) {
+    	catch (ParseException e) {
     		throw new IllegalArgumentException();
     	}
     }
@@ -126,20 +131,20 @@ public class GiveManager {
     }
     
     public void checkMissingInfo(Give g) {
-    	if (g.getAccountID().equals(null) || 
-    		g.getType().equals(null) ||
-    		g.getDescription().equals(null) || 
-    		g.getStartDate().equals(null)) {
+    	if (g.getAccountID()==null || 
+    		g.getType()==null ||
+    		g.getDescription()==null || 
+    		g.getStartDate()==null) {
     			throw new AssertionError();
     	}
     }
     
     public String assessMissingInfo(String gid) {
     	Give g = findByID(gid);
-		if (g.getAccountID().equals(null)) return "Account ID is missing!";
-		if (g.getType().equals(null)) return "Type is missing!";
-		if (g.getDescription().equals(null)) return "Description is missing!";
-		if (g.getStartDate().equals(null)) return "Start date is missing!";
+		if (g.getAccountID()==null) return "Account ID is missing!";
+		if (g.getType()==null) return "Type is missing!";
+		if (g.getDescription()==null) return "Description is missing!";
+		if (g.getStartDate()==null) return "Start date is missing!";
 		return "Something went wrong.";
     }
 }

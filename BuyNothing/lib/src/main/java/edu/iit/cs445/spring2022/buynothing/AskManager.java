@@ -16,7 +16,7 @@ public class AskManager {
 		checkType(a);
 		Ask newAsk = new Ask(a);
 		allAsks.add(newAsk);
-		a.activate();
+		newAsk.activate();
 		return newAsk;
 	}
 	
@@ -33,10 +33,9 @@ public class AskManager {
     	if (aold.isNil() || !aold.getActiveStatus()) throw new NoSuchElementException();
     	checkMissingInfo(anew);
     	checkType(anew);
-    	aold.updateAccountID(anew.getAccountID());
     	aold.updateType(anew.getType());
     	aold.updateDescription(anew.getDescription());
-    	SimpleDateFormat fmt = new SimpleDateFormat("YYYY-MM-DD");
+    	SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
     	aold.updateStartDate(fmt.format(anew.getStartDate()));
     	aold.updateEndDate(fmt.format(anew.getEndDate()));
     	aold.updateExtraZip(anew.getExtraZip());
@@ -83,12 +82,17 @@ public class AskManager {
     	return a;
     }
     
+    public void clearAllAsks() {
+    	allAsks.clear();
+    }
+    
     public List<Ask> searchAsks(String key, String start_date, String end_date) {
-    	if (key.equals(null)) return allAsks;
+    	if (key==null) return allAsks;
     	List<Ask> filteredAsks = new ArrayList<Ask>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MM-yyyy").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MM-yyyy").parse(end_date);
+    		if (!start.before(end)) throw new AssertionError();
     		Iterator<Ask> ask_iter = allAsks.listIterator();
         	while (ask_iter.hasNext()) {
         		Ask a = ask_iter.next();
@@ -126,19 +130,19 @@ public class AskManager {
     }
     
     public void checkMissingInfo(Ask a) {
-    	if (a.getAccountID().equals(null) || 
-    		a.getType().equals(null) ||
-    		a.getDescription().equals(null) || 
-    		a.getStartDate().equals(null)) {
+    	if (a.getAccountID()==null || 
+    		a.getType()==null ||
+    		a.getDescription()==null || 
+    		a.getStartDate()==null) {
     			throw new AssertionError();
     	}
     }
     
     public String assessMissingInfo(Ask a) {
-		if (a.getAccountID().equals(null)) return "Account ID is missing!";
-		if (a.getType().equals(null)) return "Type is missing!";
-		if (a.getDescription().equals(null)) return "Description is missing!";
-		if (a.getStartDate().equals(null)) return "Start date is missing!";
+		if (a.getAccountID()==null) return "Account ID is missing!";
+		if (a.getType()==null) return "Type is missing!";
+		if (a.getDescription()==null) return "Description is missing!";
+		if (a.getStartDate()==null) return "Start date is missing!";
 		return "Something went wrong.";
     }
 }

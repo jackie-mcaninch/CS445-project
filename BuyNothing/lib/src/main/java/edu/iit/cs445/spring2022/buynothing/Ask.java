@@ -1,6 +1,8 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 import java.util.Date;
+import java.util.NoSuchElementException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class Ask extends BuyNothingObj {
@@ -40,16 +42,18 @@ public class Ask extends BuyNothingObj {
 	
 	public void updateStartDate(String new_start) {
 		try {
-			this.startDate = new SimpleDateFormat("YYYY-MM-DD").parse(new_start);
+			SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+			this.startDate = fmt.parse(new_start);
 		}
-		catch (Exception e) {
+		catch (ParseException e) {
 			throw new IllegalArgumentException();
 		}
 	}
 	
 	public void updateEndDate(String new_end) {
 		try {
-			this.startDate = new SimpleDateFormat("YYYY-MM-DD").parse(new_end);
+			SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+			this.endDate = fmt.parse(new_end);
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException();
@@ -100,6 +104,17 @@ public class Ask extends BuyNothingObj {
 		}
 		return false;
 	}
+	
+	public boolean equals(Ask a) {
+    	if (a.isNil()) throw new NoSuchElementException();
+    	if (a.getType().equals(this.type) &&
+    		a.getDescription().equals(this.description) &&
+    		a.getStartDate().toString().equals(this.startDate.toString()) &&
+    		a.getEndDate().toString().equals(this.endDate.toString()) &&
+    		a.getExtraZip().equals(this.extraZip))
+    		return true;
+    	else return false;
+    }
 	
 	public boolean isNil() {
 		return false;

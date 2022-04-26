@@ -104,8 +104,12 @@ public class NoteManager {
     	return n;
     }
     
+    public void clearAllNotes() {
+    	allNotes.clear();
+    }
+    
     public List<Note> searchNotes(String key, String start_date, String end_date) {
-    	if (key.equals(null)) return allNotes;
+    	if (key==null) return allNotes;
     	List<Note> filteredNotes = new ArrayList<Note>();
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
@@ -147,22 +151,22 @@ public class NoteManager {
     }
     
     public void checkMissingInfo(Note n) {
-    	if (n.getAccountID().equals(null) || 
-    		n.getToType().equals(null) ||
-    		n.getToUserID().equals(null) ||
-    		n.getToID().equals(null) ||
-    		n.getDescription().equals(null)) {
+    	if (n.getAccountID()==null || 
+    		n.getToType()==null ||
+    		n.getToUserID()==null ||
+    		n.getToID()==null ||
+    		n.getDescription()==null) {
     			throw new AssertionError();
     	}
     }
     
     public String assessMissingInfo(String nid) {
     	Note n = findByID(nid);
-		if (n.getAccountID().equals(null)) return "Account ID is missing!";
-		if (n.getToType().equals(null)) return "Type is missing!";
-		if (n.getToUserID().equals(null)) return "Recipient account is missing!";
-		if (n.getToID().equals(null)) return "To ID field is missing!";
-		if (n.getDescription().equals(null)) return "Description is missing!";
+		if (n.getAccountID()==null) return "Account ID is missing!";
+		if (n.getToType()==null) return "Type is missing!";
+		if (n.getToUserID()==null) return "Recipient account is missing!";
+		if (n.getToID()==null) return "To ID field is missing!";
+		if (n.getDescription()==null) return "Description is missing!";
 		return "Something went wrong.";
     }
 }

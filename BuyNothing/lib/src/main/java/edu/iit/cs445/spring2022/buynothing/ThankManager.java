@@ -76,8 +76,12 @@ public class ThankManager {
     	return t;
     }
     
+    public void clearAllThanks() {
+    	allThanks.clear();
+    }
+    
     public List<Thank> searchThanks(String key, String start_date, String end_date) {
-    	if (key.equals(null)) return allThanks;
+    	if (key==null) return allThanks;
     	List<Thank> filteredThanks = new ArrayList<Thank>();
     	try {
     		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
@@ -110,18 +114,18 @@ public class ThankManager {
     }
     
     public void checkMissingInfo(Thank t) {
-    	if (t.getAccountID().equals(null) || 
-    		t.getThankTo().equals(null) ||
-    		t.getDescription().equals(null)) {
+    	if (t.getAccountID()==null || 
+    		t.getThankTo()==null ||
+    		t.getDescription()==null) {
     			throw new AssertionError();
     	}
     }
     
     public String assessMissingInfo(String tid) {
     	Thank t = findByID(tid);
-		if (t.getAccountID().equals(null)) return "Account ID is missing!";
-		if (t.getThankTo().equals(null)) return "Thank To field is missing!";
-		if (t.getDescription().equals(null)) return "Description is missing!";
+		if (t.getAccountID()==null) return "Account ID is missing!";
+		if (t.getThankTo()==null) return "Thank To field is missing!";
+		if (t.getDescription()==null) return "Description is missing!";
 		return "Something went wrong.";
     }
 }
