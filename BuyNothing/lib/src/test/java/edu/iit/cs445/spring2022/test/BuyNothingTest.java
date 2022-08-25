@@ -521,4 +521,3 @@ public class BuyNothingTest {
     	assertTrue(result.size()==1);
     }
 }
-

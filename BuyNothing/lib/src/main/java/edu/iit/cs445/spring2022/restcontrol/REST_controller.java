@@ -1,4 +1,5 @@
 package edu.iit.cs445.spring2022.restcontrol;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -6,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import edu.iit.cs445.spring2022.buynothing.*;
 
@@ -14,12 +16,12 @@ import jakarta.ws.rs.core.*;
 
 // Pingable at http://localhost:8080/bn/api
 //   bn:			the basename of the WAR file, see the gradle.build file
-//   api:			see the @Path annotation *above* the REST_controller declaration in this file
+//   api:			see the @ApplicationPath annotation *above* the REST_controller declaration in this file
 //   accounts:		see the @Path declaration above the first @GET in this file
 
-@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Path("/")
 public class REST_controller {
     private AccountManager 	accman = new AccountManager();
     private AskManager 		askman = new AskManager();
@@ -27,6 +29,18 @@ public class REST_controller {
     private ThankManager 	thkman = new ThankManager();
     private NoteManager 	notman = new NoteManager();
 
+    // VIEW ALL ACCOUNTS
+    @Path("/accounts")
+    @GET
+    public Response viewAllAccounts() {
+    	// display all accounts and return 200
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//        List<Account> accounts = accman.viewAllAccounts();
+//        Type listType = new TypeToken<List<Account>>() {}.getType();
+        String s = gson.toJson(accman.viewAllAccounts());
+        return Response.status(Response.Status.OK).entity(s).build();
+    }
+    
     // CREATE ACCOUNT
     @Path("/accounts")
     @POST
@@ -53,28 +67,28 @@ public class REST_controller {
         }
     }
 
-    // ACTIVATE ACCOUNT
-    @Path("/account/{uid}/activate")
-    @GET
-    public Response activateAccount(@PathParam("uid") String acc_id) {
-    	// activate account and return 200 on success
-    	try {
-    		accman.activateAccount(acc_id);
-        	return Response.status(Response.Status.OK).build();
-    	}
-    	// return 404 if the account does not exist
-    	catch (NoSuchElementException e) {
-    		String err_msg = "This account does not exist.";
-    		return Response.status(Response.Status.NOT_FOUND).entity(err_msg).build();
-    	}
-    	// return 400 if required data is missing
-    	catch (AssertionError e) {
-    		Account a = accman.findByID(acc_id);
-    		String err_msg = accman.assessMissingInfo(a);
-    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-    	}
-    }
-
+//    // ACTIVATE ACCOUNT
+//    @Path("/account/{uid}/activate")
+//    @GET
+//    public Response activateAccount(@PathParam("uid") String acc_id) {
+//    	// activate account and return 200 on success
+//    	try {
+//    		accman.activateAccount(acc_id);
+//        	return Response.status(Response.Status.OK).build();
+//    	}
+//    	// return 404 if the account does not exist
+//    	catch (NoSuchElementException e) {
+//    		String err_msg = "This account does not exist.";
+//    		return Response.status(Response.Status.NOT_FOUND).entity(err_msg).build();
+//    	}
+//    	// return 400 if required data is missing
+//    	catch (AssertionError e) {
+//    		Account a = accman.findByID(acc_id);
+//    		String err_msg = accman.assessMissingInfo(a);
+//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+//    	}
+//    }
+//
     // UPDATE ACCOUNT
     @Path("/account/{uid}")
     @PUT
@@ -97,7 +111,7 @@ public class REST_controller {
 	    	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
 	    }
     }
-
+//
     // DELETE ACCOUNT
     @Path("/accounts/{uid}")
     @DELETE
@@ -122,16 +136,6 @@ public class REST_controller {
             return Response.status(Response.Status.NOT_FOUND).entity("No account found for ID: " + acc_id).build();
         } 
     }
-
-    // VIEW ALL ACCOUNTS
-    @Path("/accounts")
-    @GET
-    public Response viewAllAccounts() {
-    	// display all accounts and return 200
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = gson.toJson(accman.viewAllAccounts());
-        return Response.status(Response.Status.OK).entity(s).build();
-    }
   
     // VIEW SPECIFIC ACCOUNT
     @Path("/accounts/{uid}")
@@ -150,28 +154,28 @@ public class REST_controller {
         }
     }
 
-    // SEARCH ACCOUNTS
-    @Path("/accounts?key=keyword{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
-    @GET
-    public Response searchAccounts(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {
-    	// display all accounts within criteria and return 200 on success
-    	try {
-    		List<Account> a_list = accman.searchAccounts(key, start, end);
-        	Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        	String s = gson.toJson(a_list);
-        	return Response.status(Response.Status.OK).entity(s).build();
-    	}
-    	// return 400 if date is invalid
-    	catch (AssertionError e) {
-    		String err_msg = "Start date must be before end date.";
-    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-    	}
-    	catch (IllegalArgumentException e) {
-    		String err_msg = "Please enter correct date format.";
-    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-    	}
-    }
-
+//    // SEARCH ACCOUNTS
+//    @Path("/accounts?key=keyword{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
+//    @GET
+//    public Response searchAccounts(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {
+//    	// display all accounts within criteria and return 200 on success
+//    	try {
+//    		List<Account> a_list = accman.searchAccounts(key, start, end);
+//        	Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//        	String s = gson.toJson(a_list);
+//        	return Response.status(Response.Status.OK).entity(s).build();
+//    	}
+//    	// return 400 if date is invalid
+//    	catch (AssertionError e) {
+//    		String err_msg = "Start date must be before end date.";
+//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+//    	}
+//    	catch (IllegalArgumentException e) {
+//    		String err_msg = "Please enter correct date format.";
+//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+//    	}
+//    }
+//
     // CREATE ASK
     @Path("/accounts/{uid}/asks")
     @POST
@@ -234,7 +238,7 @@ public class REST_controller {
     		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
     	}
     }
-    
+//    
     // UPDATE ASK
     @Path("/accounts/{uid}/asks/{aid}")
     @PUT
@@ -290,31 +294,31 @@ public class REST_controller {
     		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
     	}
     }
-    
-    // VIEW MY ASKS
-    @Path("/accounts/{uid}/asks{?is_active=[true|false]}")
-    @GET
-    public Response viewMyAsks(@PathParam("uid") String acc_id, @QueryParam("is_active") boolean is_active) {
-    	// collect all asks for a user and return 200 on success
-    	try {
-    		if (accman.findByID(acc_id).isNil()) throw new NoSuchElementException();
-    		List<Ask> myAsks = askman.viewMyAsks(acc_id, is_active);
-    		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        	String s = gson.toJson(myAsks);
-    		return Response.status(Response.Status.OK).entity(s).build();
-    	}
-    	// return 404 if the account does not exist
-    	catch (NoSuchElementException e) {
-    		String err_msg = "Account does not exist.";
-            return Response.status(Response.Status.NOT_FOUND).entity(err_msg).build();
-        }
-    	// return 400 if arguments are invalid
-    	catch (Exception e) {
-    		String err_msg = "Invalid parameters.";
-    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-    	}
-    }
-    
+//    
+//    // VIEW MY ASKS
+//    @Path("/accounts/{uid}/asks{?is_active=[true|false]}")
+//    @GET
+//    public Response viewMyAsks(@PathParam("uid") String acc_id, @QueryParam("is_active") boolean is_active) {
+//    	// collect all asks for a user and return 200 on success
+//    	try {
+//    		if (accman.findByID(acc_id).isNil()) throw new NoSuchElementException();
+//    		List<Ask> myAsks = askman.viewMyAsks(acc_id, is_active);
+//    		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//        	String s = gson.toJson(myAsks);
+//    		return Response.status(Response.Status.OK).entity(s).build();
+//    	}
+//    	// return 404 if the account does not exist
+//    	catch (NoSuchElementException e) {
+//    		String err_msg = "Account does not exist.";
+//            return Response.status(Response.Status.NOT_FOUND).entity(err_msg).build();
+//        }
+//    	// return 400 if arguments are invalid
+//    	catch (Exception e) {
+//    		String err_msg = "Invalid parameters.";
+//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+//    	}
+//    }
+//    
     // VIEW ALL ASKS
     @Path("/asks?v_by=viewed_by_id&is_active=[true|false]")
     @GET

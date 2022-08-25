@@ -10,7 +10,36 @@ import java.util.NoSuchElementException;
 
 
 public class AccountManager {
-	private static List<Account> allAccounts = new ArrayList<Account>();
+	private static List<Account> allAccounts;
+	
+	public AccountManager() {
+		// initialize the list of all accounts
+		allAccounts = new ArrayList<Account>();
+		
+		// set 3 default accounts
+		Account default_account1 = new Account();
+		default_account1.updateName("Jackie McAninch");
+		default_account1.updateAddress("3201 S State St", "60616");
+		default_account1.updatePhone("517-358-1025");
+		default_account1.updatePicture("<link to Jackie's picture>");
+		
+		Account default_account2 = new Account();
+		default_account2.updateName("John Smith");
+		default_account2.updateAddress("123 Sesame St", "12345");
+		default_account2.updatePhone("123-456-7890");
+		default_account2.updatePicture("<link to John's picture>");
+		
+		Account default_account3 = new Account();
+		default_account3.updateName("Jane Doe");
+		default_account3.updateAddress("987 Rainbow Rd", "54321");
+		default_account3.updatePhone("987-654-3210");
+		default_account3.updatePicture("<link to Jane's picture>");
+		
+		// add default accounts to collection
+		allAccounts.add(default_account1);
+		allAccounts.add(default_account2);
+		allAccounts.add(default_account3);
+	}
 
 	public Account createAccount(Account a) {
 		checkMissingInfo(a);
