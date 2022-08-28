@@ -1,7 +1,7 @@
 package edu.iit.cs445.spring2022.restcontrol;
 
-import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 
 @ApplicationPath("api")
-public class BuyNothingApp extends Application{}
+public class BuyNothingApp extends Application {}

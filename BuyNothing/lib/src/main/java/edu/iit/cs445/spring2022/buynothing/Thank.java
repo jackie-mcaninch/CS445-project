@@ -1,7 +1,7 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 public class Thank extends BuyNothingObj {
-	private String uid;
+	private String aid;
 	private String thankTo;
 	private String description;
 		
@@ -11,14 +11,14 @@ public class Thank extends BuyNothingObj {
 	
 	public Thank(Thank t) {
 		super();
-		this.isActive = t.getActiveStatus();
-		this.dateCreated = t.getDateCreated();
+		this.is_active = t.getActiveStatus();
+		this.date_created = t.getdate_created();
 		this.thankTo = t.getThankTo();
 		this.description = t.getDescription();
 	}
 	
-	public void updateAccountID(String new_uid) {
-		this.uid = new_uid;
+	public void updateAccountID(String new_aid) {
+		this.aid = new_aid;
 	}
 	
 	public void updateThankTo(String new_tt) {
@@ -30,7 +30,7 @@ public class Thank extends BuyNothingObj {
 	}
 	
 	public String getAccountID() {
-		return this.uid;
+		return this.aid;
 	}
 	
 	public String getThankTo() {
@@ -42,7 +42,7 @@ public class Thank extends BuyNothingObj {
 	}
 
 	public boolean matchesID(String thankID) {
-		return (thankID.equals(this.id));
+		return (thankID.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {

@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class Ask extends BuyNothingObj {
-	private String uid;
+	private String aid;
 	private String type;
 	private String description;
 	private Date startDate;
@@ -19,8 +19,9 @@ public class Ask extends BuyNothingObj {
 	
 	public Ask(Ask a) {
 		super();
-		this.isActive = a.getActiveStatus();
-		this.dateCreated = a.getDateCreated();
+		this.is_active = a.getActiveStatus();
+		this.date_created = a.getdate_created();
+		this.aid = a.getAccountID();
 		this.type = a.getType();
 		this.description = a.getDescription();
 		this.startDate = a.getStartDate();
@@ -28,8 +29,8 @@ public class Ask extends BuyNothingObj {
 		this.extraZip = a.getExtraZip();	
 	}
 	
-	public void updateAccountID(String new_uid) {
-		this.uid = new_uid;
+	public void updateAccountID(String new_aid) {
+		this.aid = new_aid;
 	}
 	
 	public void updateType(String new_type) {
@@ -65,7 +66,7 @@ public class Ask extends BuyNothingObj {
 	}
 	
 	public String getAccountID() {
-		return this.uid;
+		return this.aid;
 	}
 	
 	public String getType() {
@@ -88,11 +89,11 @@ public class Ask extends BuyNothingObj {
 		return this.extraZip;
 	}
 
-	public boolean matchesID(String aid) {
-		return (aid.equals(this.id));
+	public boolean matchesAccountID(String aid) {
+		return (aid.equals(this.aid));
 	}
 	
-	public boolean matchesUserID(String uid) {
+	public boolean matchesID(String uid) {
 		return (uid.equals(this.uid));
 	}
 	

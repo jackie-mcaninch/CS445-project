@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Give extends BuyNothingObj {
-	private String uid;
+	private String aid;
 	private String type;
 	private String description;
 	private Date startDate;
@@ -17,8 +17,8 @@ public class Give extends BuyNothingObj {
 	
 	public Give(Give g) {
 		super();
-		this.isActive = g.getActiveStatus();
-		this.dateCreated = g.getDateCreated();
+		this.is_active = g.getActiveStatus();
+		this.date_created = g.getdate_created();
 		this.type = g.getType();
 		this.description = g.getDescription();
 		this.startDate = g.getStartDate();
@@ -26,8 +26,8 @@ public class Give extends BuyNothingObj {
 		this.extraZip = g.getExtraZip();	
 	}
 	
-	public void updateAccountID(String new_uid) {
-		this.uid = new_uid;
+	public void updateAccountID(String new_aid) {
+		this.aid = new_aid;
 	}
 	
 	public void updateType(String new_type) {
@@ -61,7 +61,7 @@ public class Give extends BuyNothingObj {
 	}
 	
 	public String getAccountID() {
-		return this.uid;
+		return this.aid;
 	}
 	
 	public String getType() {
@@ -85,7 +85,7 @@ public class Give extends BuyNothingObj {
 	}
 
 	public boolean matchesID(String giveID) {
-		return (giveID.equals(this.id));
+		return (giveID.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {

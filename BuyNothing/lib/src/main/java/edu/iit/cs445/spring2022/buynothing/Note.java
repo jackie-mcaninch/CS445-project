@@ -1,7 +1,7 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 public class Note extends BuyNothingObj {
-	private String uid;
+	private String aid;
 	private String toType;
 	private String toUserID;
 	private String toID;
@@ -13,16 +13,16 @@ public class Note extends BuyNothingObj {
 	
 	public Note(Note n) {
 		super();
-		this.isActive = n.getActiveStatus();
-		this.dateCreated = n.getDateCreated();
+		this.is_active = n.getActiveStatus();
+		this.date_created = n.getdate_created();
 		this.toType = n.getToType();
 		this.toUserID = n.getToUserID();
 		this.toID = n.getToID();
 		this.description = n.getDescription();
 	}
 	
-	public void updateAccountID(String new_uid) {
-		this.uid = new_uid;
+	public void updateAccountID(String new_aid) {
+		this.aid = new_aid;
 	}
 	
 	public void updateToType(String new_totype) {
@@ -42,7 +42,7 @@ public class Note extends BuyNothingObj {
 	}
 	
 	public String getAccountID() {
-		return this.uid;
+		return this.aid;
 	}
 	
 	public String getToType() {
@@ -62,7 +62,7 @@ public class Note extends BuyNothingObj {
 	}
 
 	public boolean matchesID(String thankID) {
-		return (thankID.equals(this.id));
+		return (thankID.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {
