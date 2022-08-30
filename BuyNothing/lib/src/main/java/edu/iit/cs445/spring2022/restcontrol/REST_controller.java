@@ -1,7 +1,4 @@
 package edu.iit.cs445.spring2022.restcontrol;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.google.gson.Gson;
@@ -22,15 +19,37 @@ import jakarta.ws.rs.core.*;
 @Consumes(MediaType.APPLICATION_JSON)
 public class REST_controller {
 	BoundaryInterface bi = new BuyNothingManager();
-    
-    // VIEW ALL ACCOUNTS
-    @Path("accounts")
+
+	
+    // VIEW ALL ACCOUNTS OR FILTERED SET
+	@Path("accounts")
     @GET
-    public Response viewAllAccounts() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = gson.toJson(bi.viewAllAccounts());
-        return Response.status(Response.Status.OK).entity(s).build();
+    public Response viewAccounts(@QueryParam("key") String key, 
+							     @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+							     @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
+        // if no keyword provided, display all accounts and return 200 on success
+    	if (key == null) {
+    		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String s = gson.toJson(bi.viewAllAccounts());
+            return Response.status(Response.Status.OK).entity(s).build();
+    	}
+    	// display all accounts within criteria and return 200 on success
+    	try {
+        	Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        	String s = gson.toJson(bi.searchAccounts(key, start, end));
+        	return Response.status(Response.Status.OK).entity(s).build();
+    	}
+    	// return 400 if date is invalid
+    	catch (AssertionError e) {
+    		String err_msg = "Start date must be before end date.";
+    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+    	}
+    	catch (IllegalArgumentException e) {
+    		String err_msg = "Please enter correct date format.";
+    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+    	}
     }
+    
     
     // CREATE ACCOUNT
     @Path("accounts")
@@ -54,19 +73,21 @@ public class REST_controller {
         }
         // return 400 if required data is missing
         catch (AssertionError e) {
-        	String err_msg = bi.assessMissingAccountInfo(raw_account);
+        	String err_msg = bi.assessBadAccountInfo(raw_account);
         	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
         }
     }
 
     // ACTIVATE ACCOUNT
-    @Path("account/{uid}/activate")
+    @Path("accounts/{uid}/activate")
     @GET
     public Response activateAccount(@PathParam("uid") String acc_id) {
+    	Gson gson = new Gson();
     	// activate account and return 200 on success
     	try {
     		bi.activateAccount(acc_id);
-        	return Response.status(Response.Status.OK).build();
+    		String s = gson.toJson(bi.findAccountByID(acc_id));
+        	return Response.status(Response.Status.OK).entity(s).build();
     	}
     	// return 404 if the account does not exist
     	catch (NoSuchElementException e) {
@@ -76,7 +97,14 @@ public class REST_controller {
     	// return 400 if required data is missing
     	catch (AssertionError e) {
     		Account a = bi.findAccountByID(acc_id);
-    		String err_msg = bi.assessMissingAccountInfo(a);
+    		// TODO CHANGE THIS ITS WRONG WHOOPS
+    		String err_type = "http://cs.iit.edu/~virgil/cs445/mail.spring2022/project/api/problems/data-validation";
+    		String err_title = "Your request data didn't pass validation";
+    		String err_msg = bi.assessBadAccountInfo(a);
+    		String err_inst = "/accounts/"+acc_id+"/activate";
+    		int err_status = 400;
+    		ErrorResponse err = new ErrorResponse(err_type, err_title, err_msg, err_inst, err_status);
+    		String s = gson.toJson(err);
     		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
     	}
     }
@@ -95,17 +123,18 @@ public class REST_controller {
 	    // return 404 if the account does not exist
 	    catch (NoSuchElementException e) {
 	    	String err_msg = "Account does not exist.";
-	    	Iterator<Account> acc_iter = bi.viewAllAccounts().listIterator();
-	    	while (acc_iter.hasNext()) {
-	    		Account a = acc_iter.next();
-	    		err_msg += " "+a.getID();
-	    	}
 	    	return Response.status(Response.Status.NOT_FOUND).entity(err_msg).build();
 	    }
 	    // return 400 if required data is missing
 	    catch (AssertionError e) {
-	    	String err_msg = bi.assessMissingAccountInfo(new_account);
-	    	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
+	    	String err_type = "http://cs.iit.edu/~virgil/cs445/mail.spring2022/project/api/problems/data-validation";
+    		String err_title = "Your request data didn't pass validation";
+    		String err_msg = bi.assessBadAccountInfo(new_account);
+    		String err_inst = "/accounts/"+acc_id;
+    		int err_status = 400;
+    		ErrorResponse err = new ErrorResponse(err_type, err_title, err_msg, err_inst, err_status);
+	    	String s = gson.toJson(err);
+    		return Response.status(Response.Status.BAD_REQUEST).entity(s).build();
 	    }
     }
 
@@ -141,28 +170,6 @@ public class REST_controller {
         }
     }
 
-//    // SEARCH ACCOUNTS
-//    @Path("accounts?key={keyword}{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
-//    @GET
-//    public Response searchAccounts(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {
-//    	// display all accounts within criteria and return 200 on success
-//    	try {
-//    		List<Account> a_list = bi.searchAccounts(key, start, end);
-//        	Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//        	String s = gson.toJson(a_list);
-//        	return Response.status(Response.Status.OK).entity(s).build();
-//    	}
-//    	// return 400 if date is invalid
-//    	catch (AssertionError e) {
-//    		String err_msg = "Start date must be before end date.";
-//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-//    	}
-//    	catch (IllegalArgumentException e) {
-//    		String err_msg = "Please enter correct date format.";
-//    		return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
-//    	}
-//    }
-
 //    // CREATE ASK
 //    @Path("/accounts/{uid}/asks")
 //    @POST
@@ -190,7 +197,7 @@ public class REST_controller {
 //        }
 //        // return 400 if required data is missing
 //        catch (AssertionError e) {
-//        	String err_msg = bi.assessMissingAccountInfo(raw_ask);
+//        	String err_msg = bi.assessBadAccountInfo(raw_ask);
 //        	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
 //        }
 //        // return 400 if type is invalid
@@ -245,7 +252,7 @@ public class REST_controller {
 //	    }
 //	    // return 400 if required data is missing
 //	    catch (AssertionError e) {
-//	    	String err_msg = bi.assessMissingAccountInfo(new_ask);
+//	    	String err_msg = bi.assessBadAccountInfo(new_ask);
 //	    	return Response.status(Response.Status.BAD_REQUEST).entity(err_msg).build();
 //	    }
 //	    // return 400 if wrong type
@@ -335,7 +342,7 @@ public class REST_controller {
 //    }
 //    
 //    // SEARCH ASKS
-//    @Path("/asks?key=keyword{&start_date=DD-MM-YYYY&end_date=DD-MM-YYYY}")
+//    @Path("/asks?key=keyword{&start_date=dd-MMM-YYYY&end_date=dd-MMM-YYYY}")
 //    @GET
 //    public Response searchAsks(@QueryParam("key") String key, @QueryParam("start_date") String start, @QueryParam("end_date") String end) {
 //    	// display all accounts within criteria and return 200 on success

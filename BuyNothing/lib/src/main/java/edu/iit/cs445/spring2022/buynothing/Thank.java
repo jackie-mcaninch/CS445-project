@@ -12,7 +12,7 @@ public class Thank extends BuyNothingObj {
 	public Thank(Thank t) {
 		super();
 		this.is_active = t.getActiveStatus();
-		this.date_created = t.getdate_created();
+		this.date_created = t.getDateCreated();
 		this.thankTo = t.getThankTo();
 		this.description = t.getDescription();
 	}

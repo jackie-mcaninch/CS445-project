@@ -20,7 +20,7 @@ public class Ask extends BuyNothingObj {
 	public Ask(Ask a) {
 		super();
 		this.is_active = a.getActiveStatus();
-		this.date_created = a.getdate_created();
+		this.date_created = a.getDateCreated();
 		this.aid = a.getAccountID();
 		this.type = a.getType();
 		this.description = a.getDescription();

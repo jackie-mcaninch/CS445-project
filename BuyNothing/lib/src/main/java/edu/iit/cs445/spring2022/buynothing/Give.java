@@ -18,7 +18,7 @@ public class Give extends BuyNothingObj {
 	public Give(Give g) {
 		super();
 		this.is_active = g.getActiveStatus();
-		this.date_created = g.getdate_created();
+		this.date_created = g.getDateCreated();
 		this.type = g.getType();
 		this.description = g.getDescription();
 		this.startDate = g.getStartDate();

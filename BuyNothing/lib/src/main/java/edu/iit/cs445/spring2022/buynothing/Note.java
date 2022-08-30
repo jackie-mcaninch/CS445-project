@@ -14,7 +14,7 @@ public class Note extends BuyNothingObj {
 	public Note(Note n) {
 		super();
 		this.is_active = n.getActiveStatus();
-		this.date_created = n.getdate_created();
+		this.date_created = n.getDateCreated();
 		this.toType = n.getToType();
 		this.toUserID = n.getToUserID();
 		this.toID = n.getToID();

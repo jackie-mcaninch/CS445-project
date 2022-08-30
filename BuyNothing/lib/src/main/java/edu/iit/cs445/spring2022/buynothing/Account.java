@@ -71,24 +71,26 @@ public class Account extends BuyNothingObj {
 	}
 	
 	public boolean checkForKeyword(String key) {
-		String[] split_name = this.name.split(" ");
-		String first_name = split_name[0];
-		String last_name = split_name[1];
-		String address = String.format("%s %s", this.getStreet(), this.getZip());
-		if (key.equalsIgnoreCase(first_name)) return true;
-		if (key.equalsIgnoreCase(last_name)) return true;
-		if (key.equalsIgnoreCase(address)) return true;
-		if (key.equalsIgnoreCase(phone)) return true;
-		return false;
+		key = key.toLowerCase();
+		String name 	= this.getName().toLowerCase();
+		String street 	= this.getStreet().toLowerCase();
+		String zip 		= this.getZip().toLowerCase();
+		String phone 	= this.getPhone().toLowerCase();
+		if (name.contains(key) ||
+			street.contains(key) ||
+			zip.contains(key) ||
+			phone.contains(key)) 
+			return true;
+		else return false;
 		}
     
     public boolean equals(Account a) {
     	if (a.isNil()) throw new NoSuchElementException();
-    	if (a.getName().equals(this.name) &&
+    	if (a.getName().equals(this.getName()) &&
     		a.getStreet().equals(this.getStreet()) &&
     		a.getZip().equals(this.getZip()) &&
-    		a.getPhone().equals(this.phone) &&
-    		a.getPicture().equals(this.picture))
+    		a.getPhone().equals(this.getPhone()) &&
+    		a.getPicture().equals(this.getPicture()))
     		return true;
     	else return false;
     }

@@ -16,10 +16,13 @@ public abstract class BuyNothingObj {
 		this.date_created = "";
 	}
 	
+	public void create() {
+		DateFormat format = new SimpleDateFormat("dd-MMM-YYYY");
+		this.date_created = format.format(new Date());
+	}
+	
 	public void activate() {
 		this.is_active = true;
-		DateFormat format = new SimpleDateFormat("DD-MM-YYYY");
-		this.date_created = format.format(new Date());
 	}
 	
 	public void forceActivate() {
@@ -39,7 +42,7 @@ public abstract class BuyNothingObj {
 		return this.is_active;
 	}
 	
-	public String getdate_created() {
+	public String getDateCreated() {
 		return this.date_created;
 	}
 }

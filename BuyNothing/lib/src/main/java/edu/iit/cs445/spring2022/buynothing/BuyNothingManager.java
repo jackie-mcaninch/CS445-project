@@ -54,7 +54,9 @@ public class BuyNothingManager implements BoundaryInterface {
 			createDefaultAccounts();
 		}
 		checkMissingAccountInfo(a);
+    	checkNewObjActiveStatus(a);
 		Account newAccount = new Account(a);
+		newAccount.create();
 		allAccounts.add(newAccount);
 		return newAccount;
 	}
@@ -70,6 +72,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	Account aold = findAccountByID(old_id);
     	if (aold.isNil()) throw new NoSuchElementException();
     	checkMissingAccountInfo(anew);
+    	checkNewObjActiveStatus(anew);
     	aold.updateName(anew.getName());
     	aold.updateAddress(anew.getStreet(), anew.getZip());
     	aold.updatePhone(anew.getPhone());
@@ -109,22 +112,25 @@ public class BuyNothingManager implements BoundaryInterface {
     }
     
     public List<Account> searchAccounts(String key, String start_date, String end_date) {
-    	if (allAccounts == null) {
-    		createDefaultAccounts();
-    	}
-    	if (key==null) return allAccounts;
+    	if (allAccounts == null) createDefaultAccounts();
+    	if (key == null) return viewAllAccounts();
     	List<Account> filteredAccounts = new ArrayList<Account>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
     		if (!start.before(end)) throw new AssertionError();
     		Iterator<Account> acc_iter = allAccounts.listIterator();
         	while (acc_iter.hasNext()) {
         		Account a = acc_iter.next();
         		if (a.checkForKeyword(key)) {
-        			Date created = new SimpleDateFormat("DD-MM-YYYY").parse(a.getdate_created());
-        			if (!created.after(end) && !created.before(start)) {
+        			if (a.getDateCreated() == "") {
         				filteredAccounts.add(a);
+        			}
+        			else {
+        				Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(a.getDateCreated());
+            			if (!created.after(end) && !created.before(start)) {
+            				filteredAccounts.add(a);
+            			}
         			}
         		}
         	}
@@ -157,12 +163,13 @@ public class BuyNothingManager implements BoundaryInterface {
     		}
     }
     
-    public String assessMissingAccountInfo(Account a) {
+    public String assessBadAccountInfo(Account a) {
 		if (a.getName()==null) return "Name is missing!";
 		if (a.getStreet()==null) return "Street is missing!";
 		if (a.getZip()==null) return "Zip code is missing!";
 		if (a.getPhone()==null) return "Phone number is missing!";
 		if (a.getPicture()==null) return "Picture is missing!";
+		if (a.getActiveStatus()==true) return "You may not use PUT to activate an account, use GET /accounts/"+a.getID()+"/activate instead";
 		return "Something went wrong.";
     }
     
@@ -173,8 +180,10 @@ public class BuyNothingManager implements BoundaryInterface {
 			allAsks = new ArrayList<Ask>();
 		}
 		checkMissingAskInfo(a);
+    	checkNewObjActiveStatus(a);
 		checkAskType(a);
 		Ask newAsk = new Ask(a);
+		newAsk.create();
 		allAsks.add(newAsk);
 		newAsk.activate();
 		return newAsk;
@@ -192,6 +201,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	Ask aold = findAskByID(old_id);
     	if (aold.isNil() || !aold.getActiveStatus()) throw new NoSuchElementException();
     	checkMissingAskInfo(anew);
+    	checkNewObjActiveStatus(anew);
     	checkAskType(anew);
     	aold.updateType(anew.getType());
     	aold.updateDescription(anew.getDescription());
@@ -265,16 +275,21 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (key==null) return allAsks;
     	List<Ask> filteredAsks = new ArrayList<Ask>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
     		if (!start.before(end)) throw new AssertionError();
     		Iterator<Ask> ask_iter = allAsks.listIterator();
         	while (ask_iter.hasNext()) {
         		Ask a = ask_iter.next();
         		if (a.checkForKeyword(key)) {
-        			Date created = new SimpleDateFormat("DD-MM-YYYY").parse(a.getdate_created());
-        			if (!created.after(end) && !created.before(start)) {
+        			if (a.getDateCreated() == "") {
         				filteredAsks.add(a);
+        			}
+        			else {
+        				Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(a.getDateCreated());
+            			if (!created.after(end) && !created.before(start)) {
+            				filteredAsks.add(a);
+            			}
         			}
         		}
         	}
@@ -311,16 +326,18 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (a.getAccountID()==null || 
     		a.getType()==null ||
     		a.getDescription()==null || 
-    		a.getStartDate()==null) {
+    		a.getStartDate()==null ||
+    		a.getActiveStatus()==true) {
     			throw new AssertionError();
     	}
     }
     
-    public String assessMissingAskInfo(Ask a) {
+    public String assessBadAskInfo(Ask a) {
 		if (a.getAccountID()==null) return "Account ID is missing!";
 		if (a.getType()==null) return "Type is missing!";
 		if (a.getDescription()==null) return "Description is missing!";
 		if (a.getStartDate()==null) return "Start date is missing!";
+		if (a.getActiveStatus()==true) return "Cannot activate through PUT request!";
 		return "Something went wrong.";
     }
     
@@ -331,6 +348,7 @@ public class BuyNothingManager implements BoundaryInterface {
 			allGives = new ArrayList<Give>();
 		}
 		checkMissingGiveInfo(g);
+    	checkNewObjActiveStatus(g);
 		checkGiveType(g);
 		Give newGive = new Give(g);
 		allGives.add(newGive);
@@ -350,6 +368,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	Give gold = findGiveByID(old_id);
     	if (gold.isNil() || !gold.getActiveStatus()) throw new NoSuchElementException();
     	checkMissingGiveInfo(gnew);
+    	checkNewObjActiveStatus(gnew);
     	checkGiveType(gnew);
     	gold.updateAccountID(gnew.getAccountID());
     	gold.updateType(gnew.getType());
@@ -424,13 +443,13 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (key==null) return allGives;
     	List<Give> filteredGives = new ArrayList<Give>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
     		Iterator<Give> give_iter = allGives.listIterator();
         	while (give_iter.hasNext()) {
         		Give g = give_iter.next();
         		if (g.checkForKeyword(key)) {
-        			Date created = new SimpleDateFormat("DD-MM-YYYY").parse(g.getdate_created());
+        			Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(g.getDateCreated());
         			if (!created.after(end) && !created.before(start)) {
         				filteredGives.add(g);
         			}
@@ -469,16 +488,18 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (g.getAccountID()==null || 
     		g.getType()==null ||
     		g.getDescription()==null || 
-    		g.getStartDate()==null) {
+    		g.getStartDate()==null ||
+			g.getActiveStatus()==true) {
     			throw new AssertionError();
     	}
     }
     
-    public String assessMissingGiveInfo(Give g) {
+    public String assessBadGiveInfo(Give g) {
 		if (g.getAccountID()==null) return "Account ID is missing!";
 		if (g.getType()==null) return "Type is missing!";
 		if (g.getDescription()==null) return "Description is missing!";
 		if (g.getStartDate()==null) return "Start date is missing!";
+		if (g.getActiveStatus()==true) return "Cannot activate through PUT request!";
 		return "Something went wrong.";
     }
     
@@ -489,6 +510,7 @@ public class BuyNothingManager implements BoundaryInterface {
 			allThanks = new ArrayList<Thank>();
 		}
 		checkMissingThankInfo(t);
+    	checkNewObjActiveStatus(t);
 		Thank newThank = new Thank(t);
 		allThanks.add(newThank);
 		t.activate();
@@ -499,6 +521,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	Thank told = findThankByID(old_id);
     	if (told.isNil() || !told.getActiveStatus()) throw new NoSuchElementException();
     	checkMissingThankInfo(tnew);
+    	checkNewObjActiveStatus(tnew);
     	told.updateAccountID(tnew.getAccountID());
     	told.updateThankTo(tnew.getThankTo());
     	told.updateDescription(tnew.getDescription());
@@ -568,13 +591,13 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (key==null) return allThanks;
     	List<Thank> filteredThanks = new ArrayList<Thank>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
     		Iterator<Thank> thank_iter = allThanks.listIterator();
         	while (thank_iter.hasNext()) {
         		Thank t = thank_iter.next();
         		if (t.checkForKeyword(key)) {
-        			Date created = new SimpleDateFormat("DD-MM-YYYY").parse(t.getdate_created());
+        			Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(t.getDateCreated());
         			if (!created.after(end) && !created.before(start)) {
         				filteredThanks.add(t);
         			}
@@ -603,15 +626,17 @@ public class BuyNothingManager implements BoundaryInterface {
     public void checkMissingThankInfo(Thank t) {
     	if (t.getAccountID()==null || 
     		t.getThankTo()==null ||
-    		t.getDescription()==null) {
+    		t.getDescription()==null ||
+			t.getActiveStatus()==true) {
     			throw new AssertionError();
     	}
     }
     
-    public String assessMissingThankInfo(Thank t) {
+    public String assessBadThankInfo(Thank t) {
 		if (t.getAccountID()==null) return "Account ID is missing!";
 		if (t.getThankTo()==null) return "Thank To field is missing!";
 		if (t.getDescription()==null) return "Description is missing!";
+		if (t.getActiveStatus()==true) return "Cannot activate through PUT request!";
 		return "Something went wrong.";
     }
     
@@ -622,6 +647,7 @@ public class BuyNothingManager implements BoundaryInterface {
     		allNotes = new ArrayList<Note>();
 		}
 		checkMissingNoteInfo(n);
+    	checkNewObjActiveStatus(n);
 		checkNoteToType(n);
 		Note newNote = new Note(n);
 		allNotes.add(newNote);
@@ -632,6 +658,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	Note nold = findNoteByID(old_id);
     	if (nold.isNil() || !nold.getActiveStatus()) throw new NoSuchElementException();
     	checkMissingNoteInfo(nnew);
+    	checkNewObjActiveStatus(nnew);
     	checkNoteToType(nnew);
     	nold.updateAccountID(nnew.getAccountID());
     	nold.updateToType(nnew.getToType());
@@ -725,13 +752,13 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (key==null) return allNotes;
     	List<Note> filteredNotes = new ArrayList<Note>();
     	try {
-    		Date start = new SimpleDateFormat("DD-MM-YYYY").parse(start_date);
-    		Date end = new SimpleDateFormat("DD-MM-YYYY").parse(end_date);
+    		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
+    		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
     		Iterator<Note> note_iter = allNotes.listIterator();
         	while (note_iter.hasNext()) {
         		Note n = note_iter.next();
         		if (n.checkForKeyword(key)) {
-        			Date created = new SimpleDateFormat("DD-MM-YYYY").parse(n.getdate_created());
+        			Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(n.getDateCreated());
         			if (!created.after(end) && !created.before(start)) {
         				filteredNotes.add(n);
         			}
@@ -771,18 +798,27 @@ public class BuyNothingManager implements BoundaryInterface {
     		n.getToType()==null ||
     		n.getToUserID()==null ||
     		n.getToID()==null ||
-    		n.getDescription()==null) {
+    		n.getDescription()==null ||
+    		n.getActiveStatus()==true) {
     			throw new AssertionError();
     	}
     }
     
-    public String assessMissingNoteInfo(Note n) {
+    public String assessBadNoteInfo(Note n) {
 		if (n.getAccountID()==null) return "Account ID is missing!";
 		if (n.getToType()==null) return "Type is missing!";
 		if (n.getToUserID()==null) return "Recipient account is missing!";
 		if (n.getToID()==null) return "To ID field is missing!";
 		if (n.getDescription()==null) return "Description is missing!";
+		if (n.getActiveStatus()==true) return "Cannot activate through PUT request!";
 		return "Something went wrong.";
+    }
+    
+    // VARIA METHODS
+    public void checkNewObjActiveStatus(BuyNothingObj b) {
+    	if (b.getActiveStatus()==true) {
+    		throw new AssertionError();
+    	}
     }
     
 }

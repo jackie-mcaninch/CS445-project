@@ -154,7 +154,7 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_account.updateName("Jackie McAninch");
@@ -165,7 +165,7 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_account.updateAddress("3201 S State St", null);
@@ -175,7 +175,7 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_account.updateAddress("3201 S State St", "60616");
@@ -186,7 +186,7 @@ public class BuyNothingTest {
     		bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_account.updatePhone("517-358-1025");
@@ -197,7 +197,7 @@ public class BuyNothingTest {
     		bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_account.updatePicture("<link to my picture>");
@@ -205,7 +205,7 @@ public class BuyNothingTest {
     	// test account is now valid
     	exp_error = "Something went wrong.";
 		bm.createAccount(invalid_test_account);
-		actual_error = bm.assessMissingAccountInfo(invalid_test_account);
+		actual_error = bm.assessBadAccountInfo(invalid_test_account);
     	assertTrue(exp_error.equals(actual_error));
     }
     
@@ -270,8 +270,8 @@ public class BuyNothingTest {
     	}
     	assertTrue(error_caught);
 
-		String start = "01-01-2001";
-		String end = "01-01-2023";
+		String start = "01-Jan-2001";
+		String end = "01-Jan-2023";
     	error_caught = false;
     	try {
     		bm.searchAccounts("key", end, start);
@@ -287,15 +287,15 @@ public class BuyNothingTest {
     	assertTrue(result.size()==1);
     	result = bm.searchAccounts("McAninch", start, end);
     	assertTrue(result.size()==1);
-    	result = bm.searchAccounts("3201 S State St 60616", start, end);
+    	result = bm.searchAccounts("State", start, end);
     	assertTrue(result.size()==1);
     	result = bm.searchAccounts("517-358-1025", start, end);
     	assertTrue(result.size()==1);
-    	result = bm.searchAccounts("bad keyword", start, end);
+    	result = bm.searchAccounts("badkeyword", start, end);
     	assertTrue(result.size()==0);
-    	result = bm.searchAccounts("Jackie", start, "01-01-2010");
+    	result = bm.searchAccounts("Jackie", start, "01-Jan-2010");
     	assertTrue(result.size()==0);
-    	result = bm.searchAccounts("Jackie", "01-01-2023", "01-01-2025");
+    	result = bm.searchAccounts("Jackie", "01-Jan-2023", "01-Jan-2025");
     	assertTrue(result.size()==0);
     	result = bm.searchAccounts(null, start, end);
     	assertTrue(result.size()==1);
@@ -391,7 +391,7 @@ public class BuyNothingTest {
         	bm.createAsk(invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAskInfo(invalid_test_ask);
+    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_ask.updateAccountID(test_account.getID());
@@ -402,7 +402,7 @@ public class BuyNothingTest {
         	bm.createAsk(invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAskInfo(invalid_test_ask);
+    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_ask.updateType("borrrow"); // will test this invalid type later
@@ -413,7 +413,7 @@ public class BuyNothingTest {
     		bm.createAsk(invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAskInfo(invalid_test_ask);
+    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_ask.updateDescription("new description");
@@ -424,7 +424,7 @@ public class BuyNothingTest {
     		bm.createAsk(invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessMissingAskInfo(invalid_test_ask);
+    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
     	}
     	assertTrue(exp_error.equals(actual_error));
 		invalid_test_ask.updateStartDate("2022-04-26");
@@ -443,7 +443,7 @@ public class BuyNothingTest {
     	// test ask is now valid
     	exp_error = "Something went wrong.";
 		bm.createAsk(invalid_test_ask);
-		actual_error = bm.assessMissingAskInfo(invalid_test_ask);
+		actual_error = bm.assessBadAskInfo(invalid_test_ask);
     	assertTrue(exp_error.equals(actual_error));
     }
     
@@ -498,8 +498,8 @@ public class BuyNothingTest {
     	}
     	assertTrue(error_caught);
 
-		String start = "01-01-2001";
-		String end = "01-01-2023";
+		String start = "01-Jan-2001";
+		String end = "01-Jan-2023";
     	error_caught = false;
     	try {
     		bm.searchAsks("key", end, start);
@@ -519,7 +519,7 @@ public class BuyNothingTest {
     	assertTrue(result.size()==1);
     	result = bm.searchAsks("bad keyword", start, end);
     	assertTrue(result.size()==0);
-    	result = bm.searchAsks("gift", start, "01-01-2010");
+    	result = bm.searchAsks("gift", start, "01-Jan-2010");
     	assertTrue(result.size()==0);
     	result = bm.searchAsks(null, start, end);
     	assertTrue(result.size()==1);
