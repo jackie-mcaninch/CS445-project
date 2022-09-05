@@ -44,9 +44,9 @@ public class BuyNothingManager implements BoundaryInterface {
 		default_account3.updatePicture("<link to CSR's picture>");
 		
 		// add default accounts to collection and set virgil/csr1 is_active to true
-		createAccount(default_account1).forceActivate();
+		createAccount(default_account1).activate();
 		createAccount(default_account2);
-		createAccount(default_account3).forceActivate();
+		createAccount(default_account3).activate();
 	}
 	
 	public Account createAccount(Account a) {
@@ -54,7 +54,7 @@ public class BuyNothingManager implements BoundaryInterface {
 			createDefaultAccounts();
 		}
 		checkMissingAccountInfo(a);
-    	checkNewObjActiveStatus(a);
+		if (a.getActiveStatus()) throw new AssertionError("You may not use PUT to activate an account, use GET /accounts/"+a.getID()+"/activate instead");
 		Account newAccount = new Account(a);
 		newAccount.create();
 		allAccounts.add(newAccount);
@@ -63,16 +63,16 @@ public class BuyNothingManager implements BoundaryInterface {
 	
 	public void activateAccount(String uid) {
 		Account a = findAccountByID(uid);
-		if (a.isNil()) throw new NoSuchElementException();
+		if (a.isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
 		checkMissingAccountInfo(a);
 		a.activate();
 	}
 	
     public void updateAccount(String old_id, Account anew) {
     	Account aold = findAccountByID(old_id);
-    	if (aold.isNil()) throw new NoSuchElementException();
+    	if (aold.isNil()) throw new NoSuchElementException("No account found for ID: "+old_id);
     	checkMissingAccountInfo(anew);
-    	checkNewObjActiveStatus(anew);
+    	if (anew.getActiveStatus()) throw new AssertionError("You may not use PUT to activate an account, use GET /accounts/"+anew.getID()+"/activate instead");
     	aold.updateName(anew.getName());
     	aold.updateAddress(anew.getStreet(), anew.getZip());
     	aold.updatePhone(anew.getPhone());
@@ -81,7 +81,7 @@ public class BuyNothingManager implements BoundaryInterface {
     
     public void deleteAccount(String uid) {
     	Account a = findAccountByID(uid);
-    	if (a.isNil()) throw new NoSuchElementException();
+    	if (a.isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
 		a.deactivate();
 		allAccounts.remove(a);
 		// delete all subordinate resources
@@ -100,7 +100,7 @@ public class BuyNothingManager implements BoundaryInterface {
     
     public Account viewAccount(String uid) {
     	Account a = findAccountByID(uid);
-    	if (a.isNil()) throw new NoSuchElementException();
+    	if (a.isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
     	return a;
     }
     
@@ -118,7 +118,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	try {
     		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
     		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
-    		if (!start.before(end)) throw new AssertionError();
+    		if (!start.before(end)) throw new AssertionError("Start date cannot be before end date.");
     		Iterator<Account> acc_iter = allAccounts.listIterator();
         	while (acc_iter.hasNext()) {
         		Account a = acc_iter.next();
@@ -137,7 +137,7 @@ public class BuyNothingManager implements BoundaryInterface {
         	return filteredAccounts;
     	}
     	catch (ParseException e) {
-    		throw new IllegalArgumentException();
+    		throw new AssertionError("Date could not be parsed.");
     	}
     }
     
@@ -154,33 +154,24 @@ public class BuyNothingManager implements BoundaryInterface {
     }
     
     public void checkMissingAccountInfo(Account a) {
-    	if (a.getName()==null || 
-    		a.getStreet()==null ||
-    		a.getZip()==null || 
-    		a.getPhone()==null || 
-    		a.getPicture()==null) {
-    			throw new AssertionError();
-    		}
-    }
-    
-    public String assessBadAccountInfo(Account a) {
-		if (a.getName()==null) return "Name is missing!";
-		if (a.getStreet()==null) return "Street is missing!";
-		if (a.getZip()==null) return "Zip code is missing!";
-		if (a.getPhone()==null) return "Phone number is missing!";
-		if (a.getPicture()==null) return "Picture is missing!";
-		if (a.getActiveStatus()==true) return "You may not use PUT to activate an account, use GET /accounts/"+a.getID()+"/activate instead";
-		return "Something went wrong.";
+    	if (a.getName()==null) throw new AssertionError("Name is missing!"); 
+    	if (a.getStreet()==null) throw new AssertionError("Street is missing!");
+    	if (a.getZip()==null) throw new AssertionError("Zip code is missing!");
+    	if (a.getPhone()==null) throw new AssertionError("Phone number is missing!");
+    	if (a.getPicture()==null) throw new AssertionError("Picture is missing!");
     }
     
     
     // ASK METHODS
-    public Ask createAsk(Ask a) {
+    public Ask createAsk(String acc_id, Ask a) {
     	if (allAsks == null) {
 			allAsks = new ArrayList<Ask>();
 		}
+		Account parent_account = findAccountByID(acc_id);
+		if (parent_account.isNil()) throw new NoSuchElementException("No account found for ID: "+acc_id);
+		if (!parent_account.getActiveStatus()) throw new AssertionError("This account "+parent_account.getID()+" is not active an may not create an ask.");
+		if (!acc_id.equals(a.getAccountID())) throw new AssertionError("Account ID does not match URI.");
 		checkMissingAskInfo(a);
-    	checkNewObjActiveStatus(a);
 		checkAskType(a);
 		Ask newAsk = new Ask(a);
 		newAsk.create();
@@ -189,35 +180,37 @@ public class BuyNothingManager implements BoundaryInterface {
 		return newAsk;
 	}
 	
-	public Ask deactivateAsk(String uid) {
-		Ask a = findAskByID(uid);
-		if (a.isNil()) throw new NoSuchElementException();
-		a.deactivate();
-    	allAsks.remove(a);
-    	return a;
+	public Ask deactivateAsk(String uid, String aid) {
+		Account acc = findAccountByID(uid);
+		Ask ask = findAskByID(aid);
+		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
+		if (ask.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
+		if (!ask.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		ask.deactivate();
+    	return ask;
 	}
 	
     public void updateAsk(String old_id, Ask anew) {
     	Ask aold = findAskByID(old_id);
-    	if (aold.isNil() || !aold.getActiveStatus()) throw new NoSuchElementException();
+    	if (aold.isNil() || !aold.getActiveStatus()) throw new NoSuchElementException("No ask found for ID: "+old_id);
+    	if (!anew.getAccountID().equals(aold.getAccountID())) throw new AssertionError("Account ID cannot be altered.");
     	checkMissingAskInfo(anew);
-    	checkNewObjActiveStatus(anew);
     	checkAskType(anew);
     	aold.updateType(anew.getType());
     	aold.updateDescription(anew.getDescription());
-    	SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
-    	aold.updateStartDate(fmt.format(anew.getStartDate()));
-    	aold.updateEndDate(fmt.format(anew.getEndDate()));
+    	aold.updateStartDate(anew.getStartDate());
+    	aold.updateEndDate(anew.getEndDate());
     	aold.updateExtraZip(anew.getExtraZip());
     }
     
-    public void deleteAsk(String uid) {
-    	Ask a = findAskByID(uid);
-    	if (a.isNil()) throw new NoSuchElementException();
+    public void deleteAsk(String uid, String aid) {
+    	Ask a = findAskByID(aid);
+    	if (a.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
+    	if (!a.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
     	allAsks.remove(a);
     }
     
-    public List<String> deleteAskByAccountID(String aid) {
+    public List<String> deleteAskByAccountID(String uid) {
     	if (allAsks == null) {
 			allAsks = new ArrayList<Ask>();
 		}
@@ -225,8 +218,8 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (ask_iter.hasNext()) {
     		Ask a = ask_iter.next();
-    		if (a.getAccountID().equals(aid)) {
-    			deleteAsk(a.getID());
+    		if (a.getAccountID().equals(uid)) {
+    			deleteAsk(uid, a.getID());
         		deleted.add(a.getID());
     		}
     	}
@@ -255,9 +248,26 @@ public class BuyNothingManager implements BoundaryInterface {
     	return myAsks;
     }
     
-    public Ask viewAsk(String uid) {
-    	Ask a = findAskByID(uid);
-    	if (a.isNil()) throw new NoSuchElementException();
+    public List<Ask> viewAllMyAsks(String uid) {
+    	if (allAsks == null) {
+			allAsks = new ArrayList<Ask>();
+		}
+    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
+    	List<Ask> myAsks = new ArrayList<Ask>();
+    	Iterator<Ask> ask_iter = allAsks.listIterator();
+    	while (ask_iter.hasNext()) {
+    		Ask a = ask_iter.next();
+    		myAsks.add(a);
+    		if (a.getAccountID().equals(uid)) {
+    			myAsks.add(a);
+    		}
+    	}
+    	return myAsks;
+    }
+    
+    public Ask viewAsk(String aid) {
+    	Ask a = findAskByID(aid);
+    	if (a.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
     	return a;
     }
     
@@ -277,7 +287,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	try {
     		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
     		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
-    		if (!start.before(end)) throw new AssertionError();
+    		if (!start.before(end)) throw new AssertionError("Start date cannot be before end date.");
     		Iterator<Ask> ask_iter = allAsks.listIterator();
         	while (ask_iter.hasNext()) {
         		Ask a = ask_iter.next();
@@ -297,18 +307,18 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	// Date cannot be parsed
     	catch (Exception e) {
-    		throw new IllegalArgumentException();
+    		throw new AssertionError("Date could not be parsed.");
     	}
     }
     
-    public Ask findAskByID(String uid) {
+    public Ask findAskByID(String aid) {
     	if (allAsks == null) {
 			allAsks = new ArrayList<Ask>();
 		}
     	Iterator<Ask> ask_iter = allAsks.listIterator();
     	while (ask_iter.hasNext()) {
     		Ask a = ask_iter.next();
-    		if (a.matchesID(uid)) return (a);
+    		if (a.matchesID(aid)) return (a);
     	}
     	return (new NullAsk());
     }
@@ -319,27 +329,14 @@ public class BuyNothingManager implements BoundaryInterface {
     		if (myType.equals(type)) return;
     	}
     	// specified type is not a valid identifier
-    	throw new IllegalArgumentException();
+    	throw new AssertionError("Ask has invalid type.");
     }
     
     public void checkMissingAskInfo(Ask a) {
-    	if (a.getAccountID()==null || 
-    		a.getType()==null ||
-    		a.getDescription()==null || 
-    		a.getStartDate()==null ||
-    		a.getActiveStatus()==true) {
-    			throw new AssertionError();
-    	}
-    }
-    
-    public String assessBadAskInfo(Ask a) {
-		if (a.getAccountID()==null) return "Account ID is missing!";
-		if (a.getType()==null) return "Type is missing!";
-		if (a.getDescription()==null) return "Description is missing!";
-		if (a.getStartDate()==null) return "Start date is missing!";
-		if (a.getActiveStatus()==true) return "Cannot activate through PUT request!";
-		return "Something went wrong.";
-    }
+    	if (a.getType()==null) throw new AssertionError("Type is missing!");
+    	if (a.getDescription()==null) throw new AssertionError("Description is missing!");
+    	if (a.getStartDate()==null) throw new AssertionError("Start date is missing!");
+    }    
     
     
     // GIVE METHODS
@@ -348,7 +345,6 @@ public class BuyNothingManager implements BoundaryInterface {
 			allGives = new ArrayList<Give>();
 		}
 		checkMissingGiveInfo(g);
-    	checkNewObjActiveStatus(g);
 		checkGiveType(g);
 		Give newGive = new Give(g);
 		allGives.add(newGive);
@@ -358,7 +354,7 @@ public class BuyNothingManager implements BoundaryInterface {
 	
 	public Give deactivateGive(String gid) {
 		Give g = findGiveByID(gid);
-		if (g.isNil()) throw new NoSuchElementException();
+		if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
 		g.deactivate();
     	allGives.remove(g);
     	return g;
@@ -366,9 +362,8 @@ public class BuyNothingManager implements BoundaryInterface {
 	
     public void updateGive(String old_id, Give gnew) {
     	Give gold = findGiveByID(old_id);
-    	if (gold.isNil() || !gold.getActiveStatus()) throw new NoSuchElementException();
+    	if (gold.isNil() || !gold.getActiveStatus()) throw new NoSuchElementException("No give found for ID: "+old_id);
     	checkMissingGiveInfo(gnew);
-    	checkNewObjActiveStatus(gnew);
     	checkGiveType(gnew);
     	gold.updateAccountID(gnew.getAccountID());
     	gold.updateType(gnew.getType());
@@ -381,7 +376,7 @@ public class BuyNothingManager implements BoundaryInterface {
     
     public void deleteGive(String gid) {
     	Give g = findGiveByID(gid);
-    	if (g.isNil()) throw new NoSuchElementException();
+    	if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
     	allGives.remove(g);
     }
     
@@ -423,9 +418,9 @@ public class BuyNothingManager implements BoundaryInterface {
     	return myGives;
     }
     
-    public Give viewGive(String uid) {
-    	Give g = findGiveByID(uid);
-    	if (g.isNil()) throw new NoSuchElementException();
+    public Give viewGive(String gid) {
+    	Give g = findGiveByID(gid);
+    	if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
     	return g;
     }
     
@@ -459,18 +454,18 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	// Date cannot be parsed
     	catch (ParseException e) {
-    		throw new IllegalArgumentException();
+    		throw new AssertionError("Date could not be parsed.");
     	}
     }
     
-    public Give findGiveByID(String uid) {
+    public Give findGiveByID(String gid) {
     	if (allGives == null) {
 			allGives = new ArrayList<Give>();
 		}
     	Iterator<Give> give_iter = allGives.listIterator();
     	while (give_iter.hasNext()) {
     		Give g = give_iter.next();
-    		if (g.matchesID(uid)) return g;
+    		if (g.matchesID(gid)) return g;
     	}
     	return (new NullGive());
     }
@@ -481,26 +476,14 @@ public class BuyNothingManager implements BoundaryInterface {
     		if (myType.equals(type)) return;
     	}
     	// specified type is not a valid identifier
-    	throw new IllegalArgumentException();
+    	throw new AssertionError("Give has invalid type.");
     }
     
     public void checkMissingGiveInfo(Give g) {
-    	if (g.getAccountID()==null || 
-    		g.getType()==null ||
-    		g.getDescription()==null || 
-    		g.getStartDate()==null ||
-			g.getActiveStatus()==true) {
-    			throw new AssertionError();
-    	}
-    }
-    
-    public String assessBadGiveInfo(Give g) {
-		if (g.getAccountID()==null) return "Account ID is missing!";
-		if (g.getType()==null) return "Type is missing!";
-		if (g.getDescription()==null) return "Description is missing!";
-		if (g.getStartDate()==null) return "Start date is missing!";
-		if (g.getActiveStatus()==true) return "Cannot activate through PUT request!";
-		return "Something went wrong.";
+    	if (g.getAccountID()==null) throw new AssertionError("Account ID is missing!");
+    	if (g.getType()==null) throw new AssertionError("Type is missing!");
+    	if (g.getDescription()==null) throw new AssertionError("Description is missing!");
+    	if (g.getStartDate()==null) throw new AssertionError("Start date is missing!");
     }
     
     
@@ -510,7 +493,6 @@ public class BuyNothingManager implements BoundaryInterface {
 			allThanks = new ArrayList<Thank>();
 		}
 		checkMissingThankInfo(t);
-    	checkNewObjActiveStatus(t);
 		Thank newThank = new Thank(t);
 		allThanks.add(newThank);
 		t.activate();
@@ -519,17 +501,16 @@ public class BuyNothingManager implements BoundaryInterface {
 	
     public void updateThank(String old_id, Thank tnew) {
     	Thank told = findThankByID(old_id);
-    	if (told.isNil() || !told.getActiveStatus()) throw new NoSuchElementException();
+    	if (told.isNil() || !told.getActiveStatus()) throw new NoSuchElementException("No thank found for ID: "+old_id);
     	checkMissingThankInfo(tnew);
-    	checkNewObjActiveStatus(tnew);
     	told.updateAccountID(tnew.getAccountID());
     	told.updateThankTo(tnew.getThankTo());
     	told.updateDescription(tnew.getDescription());
     }
     
-    public void deleteThank(String uid) {
-    	Thank t = findThankByID(uid);
-    	if (t.isNil()) throw new NoSuchElementException();
+    public void deleteThank(String tid) {
+    	Thank t = findThankByID(tid);
+    	if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
     	allThanks.remove(t);
     }
     
@@ -571,9 +552,9 @@ public class BuyNothingManager implements BoundaryInterface {
     	return myThanks;
     }
     
-    public Thank viewThank(String uid) {
-    	Thank t = findThankByID(uid);
-    	if (t.isNil()) throw new NoSuchElementException();
+    public Thank viewThank(String tid) {
+    	Thank t = findThankByID(tid);
+    	if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
     	return t;
     }
     
@@ -607,7 +588,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	// Date cannot be parsed
     	catch (Exception e) {
-    		throw new IllegalArgumentException();
+    		throw new AssertionError("Date could not be parsed.");
     	}
     }
     
@@ -624,20 +605,9 @@ public class BuyNothingManager implements BoundaryInterface {
     }
     
     public void checkMissingThankInfo(Thank t) {
-    	if (t.getAccountID()==null || 
-    		t.getThankTo()==null ||
-    		t.getDescription()==null ||
-			t.getActiveStatus()==true) {
-    			throw new AssertionError();
-    	}
-    }
-    
-    public String assessBadThankInfo(Thank t) {
-		if (t.getAccountID()==null) return "Account ID is missing!";
-		if (t.getThankTo()==null) return "Thank To field is missing!";
-		if (t.getDescription()==null) return "Description is missing!";
-		if (t.getActiveStatus()==true) return "Cannot activate through PUT request!";
-		return "Something went wrong.";
+    	if (t.getAccountID()==null) throw new AssertionError("Account ID is missing!");
+    	if (t.getThankTo()==null) throw new AssertionError("Thank To field is missing!");
+    	if (t.getDescription()==null) throw new AssertionError("Description is missing!");
     }
     
     
@@ -647,7 +617,6 @@ public class BuyNothingManager implements BoundaryInterface {
     		allNotes = new ArrayList<Note>();
 		}
 		checkMissingNoteInfo(n);
-    	checkNewObjActiveStatus(n);
 		checkNoteToType(n);
 		Note newNote = new Note(n);
 		allNotes.add(newNote);
@@ -656,9 +625,8 @@ public class BuyNothingManager implements BoundaryInterface {
 	
     public void updateNote(String old_id, Note nnew) {
     	Note nold = findNoteByID(old_id);
-    	if (nold.isNil() || !nold.getActiveStatus()) throw new NoSuchElementException();
+    	if (nold.isNil() || !nold.getActiveStatus()) throw new NoSuchElementException("No note found for ID: "+old_id);
     	checkMissingNoteInfo(nnew);
-    	checkNewObjActiveStatus(nnew);
     	checkNoteToType(nnew);
     	nold.updateAccountID(nnew.getAccountID());
     	nold.updateToType(nnew.getToType());
@@ -667,9 +635,9 @@ public class BuyNothingManager implements BoundaryInterface {
     	nold.updateDescription(nnew.getDescription());
     }
     
-    public void deleteNote(String uid) {
-    	Note n = findNoteByID(uid);
-    	if (n.isNil()) throw new NoSuchElementException();
+    public void deleteNote(String nid) {
+    	Note n = findNoteByID(nid);
+    	if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
     	allNotes.remove(n);
     }
     
@@ -733,9 +701,9 @@ public class BuyNothingManager implements BoundaryInterface {
     	return myNotes;
     }
     
-    public Note viewNote(String uid) {
-    	Note n = findNoteByID(uid);
-    	if (n.isNil()) throw new NoSuchElementException();
+    public Note viewNote(String nid) {
+    	Note n = findNoteByID(nid);
+    	if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
     	return n;
     }
     
@@ -768,7 +736,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	// Date cannot be parsed
     	catch (Exception e) {
-    		throw new IllegalArgumentException();
+    		throw new AssertionError("Date could not be parsed.");
     	}
     }
     
@@ -790,35 +758,14 @@ public class BuyNothingManager implements BoundaryInterface {
     		if (myType.equals(type)) return;
     	}
     	// specified type is not a valid identifier
-    	throw new IllegalArgumentException();
+    	throw new AssertionError("Note has invalid type.");
     }
     
     public void checkMissingNoteInfo(Note n) {
-    	if (n.getAccountID()==null || 
-    		n.getToType()==null ||
-    		n.getToUserID()==null ||
-    		n.getToID()==null ||
-    		n.getDescription()==null ||
-    		n.getActiveStatus()==true) {
-    			throw new AssertionError();
-    	}
+    	if (n.getAccountID()==null) throw new AssertionError("Account ID is missing!");
+    	if (n.getToType()==null) throw new AssertionError("Type is missing!");
+    	if (n.getToUserID()==null) throw new AssertionError("Recipient account is missing!");
+    	if (n.getToID()==null) throw new AssertionError("To ID field is missing!");
+    	if (n.getDescription()==null) throw new AssertionError("Description is missing!");
     }
-    
-    public String assessBadNoteInfo(Note n) {
-		if (n.getAccountID()==null) return "Account ID is missing!";
-		if (n.getToType()==null) return "Type is missing!";
-		if (n.getToUserID()==null) return "Recipient account is missing!";
-		if (n.getToID()==null) return "To ID field is missing!";
-		if (n.getDescription()==null) return "Description is missing!";
-		if (n.getActiveStatus()==true) return "Cannot activate through PUT request!";
-		return "Something went wrong.";
-    }
-    
-    // VARIA METHODS
-    public void checkNewObjActiveStatus(BuyNothingObj b) {
-    	if (b.getActiveStatus()==true) {
-    		throw new AssertionError();
-    	}
-    }
-    
 }

@@ -1,40 +1,45 @@
 package edu.iit.cs445.spring2022.buynothing;
 
+import java.util.UUID;
+
 public class Note extends BuyNothingObj {
-	private String aid;
-	private String toType;
-	private String toUserID;
-	private String toID;
+	private String uid;
+	private String nid;
+	private String to_type;
+	private String to_user_id;
+	private String to_id;
 	private String description;
 		
 	public Note() {
 		super();
+		this.nid = UUID.randomUUID().toString();
 	}
 	
 	public Note(Note n) {
 		super();
-		this.is_active = n.getActiveStatus();
-		this.date_created = n.getDateCreated();
-		this.toType = n.getToType();
-		this.toUserID = n.getToUserID();
-		this.toID = n.getToID();
+		this.uid = n.getAccountID();
+		this.nid = UUID.randomUUID().toString();
+		this.to_type = n.getToType();
+		this.to_user_id = n.getToUserID();
+		this.to_id = n.getToID();
 		this.description = n.getDescription();
+		this.activate();
 	}
 	
-	public void updateAccountID(String new_aid) {
-		this.aid = new_aid;
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
 	}
 	
-	public void updateToType(String new_totype) {
-		this.toType = new_totype;
+	public void updateToType(String new_to_type) {
+		this.to_type = new_to_type;
 	}
 	
-	public void updateToUserID(String new_touser) {
-		this.toUserID = new_touser;
+	public void updateToUserID(String new_to_user) {
+		this.to_user_id = new_to_user;
 	}
 	
-	public void updateToID(String new_toid) {
-		this.toID = new_toid;
+	public void updateToID(String new_to_id) {
+		this.to_id = new_to_id;
 	}
 	
 	public void updateDescription(String new_description) {
@@ -42,27 +47,35 @@ public class Note extends BuyNothingObj {
 	}
 	
 	public String getAccountID() {
-		return this.aid;
+		return this.uid;
 	}
 	
 	public String getToType() {
-		return this.toType;
+		return this.to_type;
 	}
 	
 	public String getToUserID() {
-		return this.toUserID;
+		return this.to_user_id;
 	}
 	
 	public String getToID() {
-		return this.toID;
+		return this.to_id;
+	}
+	
+	public String getID() {
+		return this.nid;
+	}
+	
+	public boolean matchesID(String id) {
+		return this.nid.equals(id);
+	}
+
+	public boolean matchesAccountID(String acc_id) {
+		return (acc_id.equals(this.uid));
 	}
 	
 	public String getDescription() {
 		return this.description;
-	}
-
-	public boolean matchesID(String thankID) {
-		return (thankID.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {

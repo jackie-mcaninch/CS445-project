@@ -1,33 +1,35 @@
 package edu.iit.cs445.spring2022.buynothing;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.UUID;
 
 public class Give extends BuyNothingObj {
-	private String aid;
+	private String uid;
+	private String gid;
 	private String type;
 	private String description;
-	private Date startDate;
-	private Date endDate;
-	private String[] extraZip;
+	private String start_date;
+	private String end_date;
+	private String[] extra_zip;
 		
 	public Give() {
 		super();
+		this.gid = UUID.randomUUID().toString();
 	}
 	
 	public Give(Give g) {
 		super();
-		this.is_active = g.getActiveStatus();
-		this.date_created = g.getDateCreated();
+		this.uid = g.getAccountID();
+		this.gid = UUID.randomUUID().toString();
 		this.type = g.getType();
 		this.description = g.getDescription();
-		this.startDate = g.getStartDate();
-		this.endDate = g.getEndDate();
-		this.extraZip = g.getExtraZip();	
+		this.start_date = g.getStartDate();
+		this.end_date = g.getEndDate();
+		this.extra_zip = g.getExtraZip();	
+		this.activate();
 	}
 	
-	public void updateAccountID(String new_aid) {
-		this.aid = new_aid;
+	public void updateAccountID(String new_uid) {
+		this.uid = new_uid;
 	}
 	
 	public void updateType(String new_type) {
@@ -39,29 +41,19 @@ public class Give extends BuyNothingObj {
 	}
 	
 	public void updateStartDate(String new_start) {
-		try {
-			this.startDate = new SimpleDateFormat("YYYY-MM-DD").parse(new_start);
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException();
-		}
+		this.start_date = new_start;
 	}
 	
 	public void updateEndDate(String new_end) {
-		try {
-			this.startDate = new SimpleDateFormat("YYYY-MM-DD").parse(new_end);
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException();
-		}
+		this.end_date = new_end;
 	}
 	
 	public void updateExtraZip(String[] new_zips) {
-		this.extraZip = new_zips;
+		this.extra_zip = new_zips;
 	}
 	
 	public String getAccountID() {
-		return this.aid;
+		return this.uid;
 	}
 	
 	public String getType() {
@@ -72,26 +64,34 @@ public class Give extends BuyNothingObj {
 		return this.description;
 	}
 	
-	public Date getStartDate() {
-		return this.startDate;
+	public String getStartDate() {
+		return this.start_date;
 	}
 	
-	public Date getEndDate() {
-		return this.endDate;
+	public String getEndDate() {
+		return this.end_date;
 	}
 	
 	public String[] getExtraZip() {
-		return this.extraZip;
+		return this.extra_zip;
+	}
+	
+	public String getID() {
+		return this.gid;
+	}
+	
+	public boolean matchesID(String id) {
+		return this.gid.equals(id);
 	}
 
-	public boolean matchesID(String giveID) {
-		return (giveID.equals(this.uid));
+	public boolean matchesAccountID(String acc_id) {
+		return (acc_id.equals(this.uid));
 	}
 	
 	public boolean checkForKeyword(String key) {
 		if (key.equalsIgnoreCase(this.type)) return true;
 		if (key.equalsIgnoreCase(this.description)) return true;
-		for (String zip: extraZip) {
+		for (String zip: this.extra_zip) {
 			if (key.equalsIgnoreCase(zip)) return true;
 		}
 		return false;

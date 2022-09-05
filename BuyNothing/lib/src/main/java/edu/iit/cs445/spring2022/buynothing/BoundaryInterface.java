@@ -14,23 +14,22 @@ public interface BoundaryInterface {
 	List<Account> searchAccounts(String key, String start_date, String end_date);
 	Account findAccountByID(String uid);
 	void checkMissingAccountInfo(Account a);
-	String assessBadAccountInfo(Account a);
 	
 	// ASK METHODS
-	Ask createAsk(Ask a);
-	Ask deactivateAsk(String uid);
+	Ask createAsk(String acc_id, Ask a);
+	Ask deactivateAsk(String uid, String aid);
 	void updateAsk(String old_id, Ask anew);
-	void deleteAsk(String uid);
-	List<String> deleteAskByAccountID(String aid);
+	void deleteAsk(String uid, String aid);
+	List<String> deleteAskByAccountID(String uid);
 	List<Ask> viewAllAsks();
+	List<Ask> viewAllMyAsks(String aid);
 	List<Ask> viewMyAsks(String uid, boolean is_active);
 	Ask viewAsk(String uid);
 	void clearAllAsks();
 	List<Ask> searchAsks(String key, String start_date, String end_date);
-	Ask findAskByID(String uid);
+	Ask findAskByID(String aid);
 	void checkAskType(Ask a);
 	void checkMissingAskInfo(Ask a);
-	String assessBadAskInfo(Ask a);
 	
 	// GIVE METHODS
 	Give createGive(Give g);
@@ -46,7 +45,6 @@ public interface BoundaryInterface {
 	Give findGiveByID(String uid);
 	void checkGiveType(Give g);
 	void checkMissingGiveInfo(Give g);
-	String assessBadGiveInfo(Give g);
 	
 	// THANK METHODS
 	Thank createThank(Thank t);
@@ -60,7 +58,6 @@ public interface BoundaryInterface {
 	List<Thank> searchThanks(String key, String start_date, String end_date);
 	Thank findThankByID(String uid);
 	void checkMissingThankInfo(Thank t);
-	String assessBadThankInfo(Thank t);
 		
 	// NOTE METHODS
 	Note createNote(Note n);
@@ -75,8 +72,4 @@ public interface BoundaryInterface {
 	Note findNoteByID(String uid);
 	void checkNoteToType(Note n);
 	void checkMissingNoteInfo(Note n);
-	String assessBadNoteInfo(Note n);
-	
-	// VARIA METHODS
-	void checkNewObjActiveStatus(BuyNothingObj b);
 }

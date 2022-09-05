@@ -1,8 +1,10 @@
 package edu.iit.cs445.spring2022.buynothing;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 public class Account extends BuyNothingObj {
+	private String uid;
 	private String name;
 	private Address address = new Address();
 	private String phone;
@@ -10,11 +12,12 @@ public class Account extends BuyNothingObj {
 	
 	public Account() {
 		super();
+		this.uid = UUID.randomUUID().toString();
 	}
 	
 	public Account(Account a) {
 		super();
-		this.is_active = false;
+		this.uid = UUID.randomUUID().toString();
 		this.name = a.getName();
 		this.address = new Address(a.getStreet(), a.getZip());
 		this.phone = a.getPhone();
@@ -36,10 +39,6 @@ public class Account extends BuyNothingObj {
 	
 	public void updatePicture(String new_picture) {
 		this.picture = new_picture;
-	}
-	
-	public String getID() {
-		return this.uid;
 	}
 	
 	public boolean getActiveStatus() {
@@ -66,8 +65,12 @@ public class Account extends BuyNothingObj {
 		return this.picture;
 	}
 	
-	public boolean matchesID(String accountID) {
-		return (accountID.equals(this.uid));
+	public String getID() {
+		return this.uid;
+	}
+	
+	public boolean matchesID(String id) {
+		return this.uid.equals(id);
 	}
 	
 	public boolean checkForKeyword(String key) {
@@ -94,9 +97,9 @@ public class Account extends BuyNothingObj {
     		return true;
     	else return false;
     }
-	
-	public boolean isNil() {
-		return false;
-	}
+    
+    public boolean isNil() {
+    	return false;
+    }
 }
 

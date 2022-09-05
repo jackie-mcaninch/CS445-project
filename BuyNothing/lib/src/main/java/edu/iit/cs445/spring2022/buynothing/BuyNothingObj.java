@@ -6,12 +6,10 @@ import java.util.Date;
 import java.util.UUID;
 
 public abstract class BuyNothingObj {
-	protected String uid;
 	protected boolean is_active;
 	protected String date_created;
 	
 	public BuyNothingObj() {
-		this.uid = UUID.randomUUID().toString();
 		this.is_active = false;
 		this.date_created = "";
 	}
@@ -24,18 +22,9 @@ public abstract class BuyNothingObj {
 	public void activate() {
 		this.is_active = true;
 	}
-	
-	public void forceActivate() {
-		// used for setting is_active to true without creating date
-		this.is_active = true;
-	}
-	
+
 	public void deactivate() {
 		this.is_active = false;
-	}
-	
-	public String getID() {
-		return this.uid;
 	}
 	
 	public boolean getActiveStatus() {

@@ -154,9 +154,9 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_account.updateName("Jackie McAninch");
     	
     	// test for missing address
@@ -165,9 +165,9 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_account.updateAddress("3201 S State St", null);
 		
     	exp_error = "Zip code is missing!";
@@ -175,9 +175,9 @@ public class BuyNothingTest {
         	bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_account.updateAddress("3201 S State St", "60616");
     	
     	// test for missing phone number
@@ -186,9 +186,9 @@ public class BuyNothingTest {
     		bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_account.updatePhone("517-358-1025");
     	
     	// test for missing picture
@@ -197,16 +197,13 @@ public class BuyNothingTest {
     		bm.createAccount(invalid_test_account);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAccountInfo(invalid_test_account);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_account.updatePicture("<link to my picture>");
     	
     	// test account is now valid
-    	exp_error = "Something went wrong.";
-		bm.createAccount(invalid_test_account);
-		actual_error = bm.assessBadAccountInfo(invalid_test_account);
-    	assertTrue(exp_error.equals(actual_error));
+    	assertFalse(bm.createAccount(invalid_test_account).isNil());
     }
     
     @Test
@@ -265,7 +262,7 @@ public class BuyNothingTest {
     	try {
     		bm.searchAccounts("key", "bad date", "another bad date");
     	}
-    	catch (IllegalArgumentException e) {
+    	catch (AssertionError e) {
     		error_caught = true;
     	}
     	assertTrue(error_caught);
@@ -311,20 +308,43 @@ public class BuyNothingTest {
     
     // ASK TESTS
     @Test void test_ask_equals() {
-    	Ask a1 = bm.createAsk(test_ask);
-    	Ask a2 = bm.createAsk(test_ask);
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
+    	// test two equivalent asks
+    	Ask a1 = bm.createAsk(new_acc.getID(), test_ask);
+    	Ask a2 = bm.createAsk(new_acc.getID(), test_ask);
     	assertTrue(a1.equals(a2));
+    	
+    	// differ by type
     	a1.updateType("borrow");
     	assertFalse(a1.equals(a2));
+    	a1.updateType(a2.getType());
+    	
+    	// differ by description
     	a1.updateDescription("new description");
     	assertFalse(a1.equals(a2));
+    	a1.updateDescription(a2.getDescription());
+    	
+    	// differ by start date
     	a1.updateStartDate("2022-04-30");
     	assertFalse(a1.equals(a2));
+    	a1.updateStartDate(a2.getStartDate());
+    	
+    	// differ by end date
     	a1.updateEndDate("2022-05-30");
     	assertFalse(a1.equals(a2));
+    	a1.updateEndDate(a2.getEndDate());
+    	
+    	// differ by zip code
     	String[] newzips = {"12345", "23456", "34567", "45678"};
     	a1.updateExtraZip(newzips);
     	assertFalse(a1.equals(a2));
+    	a1.updateExtraZip(a2.getExtraZip());
+    	
+    	// test comparison to null ask object
     	Ask null_ask = bm.findAskByID("bad id");
     	boolean error_caught = false;
     	try {
@@ -338,13 +358,18 @@ public class BuyNothingTest {
     
     @Test
     public void test_valid_ask_create_and_update() {
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
     	// create new valid ask
-        Ask a = bm.createAsk(test_ask);
+        Ask a = bm.createAsk(test_ask.getAccountID(), test_ask);
         assertTrue(a.equals(test_ask));
         
         // update ask information
         Ask new_ask = new Ask();
-        new_ask.updateAccountID(test_account.getID());
+        new_ask.updateAccountID(new_acc.getID());
         new_ask.updateType("borrow");
         new_ask.updateDescription("new description");
         new_ask.updateStartDate("2022-04-30");
@@ -357,10 +382,15 @@ public class BuyNothingTest {
     
     @Test
     public void test_view_asks() {
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
     	// create three valid asks
-        Ask a1 = bm.createAsk(test_ask);
-        Ask a2 = bm.createAsk(test_ask);
-        Ask a3 = bm.createAsk(test_ask);
+        Ask a1 = bm.createAsk(new_acc.getID(), test_ask);
+        Ask a2 = bm.createAsk(new_acc.getID(), test_ask);
+        Ask a3 = bm.createAsk(new_acc.getID(), test_ask);
         
         // collect all active asks
         List<Ask> active_asks = new ArrayList<Ask>();
@@ -375,81 +405,86 @@ public class BuyNothingTest {
     
     @Test
     public void test_valid_ask_delete() {
-    	Ask a = bm.createAsk(test_ask);
-    	bm.deleteAsk(a.getID());
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
+    	// create valid ask and delete
+    	Ask a = bm.createAsk(new_acc.getID(), test_ask);
+    	bm.deleteAsk(a.getAccountID(), a.getID());
+    	
+    	// check that list of all asks is empty
     	List<Ask> allAsks = bm.viewAllAsks();
     	Iterator<Ask> acc_iter = allAsks.listIterator();
     	assertFalse(acc_iter.hasNext());
     }
     
     @Test
-    public void test_invalid_ask_create_and_update() {    	
-    	// test for missing account id
-    	String exp_error = "Account ID is missing!";
-    	String actual_error = "";
-    	try {
-        	bm.createAsk(invalid_test_ask);
-    	}
-    	catch (AssertionError e) {
-    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
-    	}
-    	assertTrue(exp_error.equals(actual_error));
-		invalid_test_ask.updateAccountID(test_account.getID());
+    public void test_invalid_ask_create_and_update() {
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	invalid_test_ask.updateAccountID(new_acc.getID());
     	
     	// test for missing type
-    	exp_error = "Type is missing!";
+    	String exp_error = "Type is missing!";
+    	String actual_error = "";
     	try {
-        	bm.createAsk(invalid_test_ask);
+        	bm.createAsk(new_acc.getID(), invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_ask.updateType("borrrow"); // will test this invalid type later
     	
     	// test for missing description
     	exp_error = "Description is missing!";
     	try {
-    		bm.createAsk(invalid_test_ask);
+    		bm.createAsk(new_acc.getID(), invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_ask.updateDescription("new description");
     	
     	// test for missing start date
     	exp_error = "Start date is missing!";
     	try {
-    		bm.createAsk(invalid_test_ask);
+    		bm.createAsk(new_acc.getID(), invalid_test_ask);
     	}
     	catch (AssertionError e) {
-    		actual_error = bm.assessBadAskInfo(invalid_test_ask);
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(exp_error.equals(actual_error));
+    	assertEquals(exp_error, actual_error);
 		invalid_test_ask.updateStartDate("2022-04-26");
 		
 		// test for invalid type
-    	boolean error_caught = false;
+    	exp_error = "Ask has invalid type.";
     	try {
-    		bm.createAsk(invalid_test_ask);
+    		bm.createAsk(new_acc.getID(), invalid_test_ask);
     	}
-    	catch (IllegalArgumentException e) {
-    		error_caught = true;
+    	catch (AssertionError e) {
+    		actual_error = e.getMessage();
     	}
-    	assertTrue(error_caught);
+    	assertEquals(exp_error, actual_error);
 		invalid_test_ask.updateType("borrow");
     	
     	// test ask is now valid
-    	exp_error = "Something went wrong.";
-		bm.createAsk(invalid_test_ask);
-		actual_error = bm.assessBadAskInfo(invalid_test_ask);
-    	assertTrue(exp_error.equals(actual_error));
+    	assertFalse(bm.createAsk(new_acc.getID(), invalid_test_ask).isNil());
     }
     
     @Test
     public void test_update_delete_and_view_null_ask() {
-        Ask a = bm.createAsk(test_ask);
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
+    	// create ask from account
+        Ask a = bm.createAsk(new_acc.getID(), test_ask);
         boolean error_caught = false;
         String bad_uid = "asdf";
                 
@@ -466,7 +501,7 @@ public class BuyNothingTest {
         // test update null ask
         error_caught = false;
         try {
-        	bm.deleteAsk(bad_uid);
+        	bm.deleteAsk(a.getAccountID(), bad_uid);
         }
         catch (NoSuchElementException e) {
         	error_caught = true;
@@ -486,14 +521,19 @@ public class BuyNothingTest {
     
     @Test
     public void test_search_asks() {
-    	bm.createAsk(test_ask);
+    	// create new active account to branch from
+    	Account new_acc = bm.createAccount(test_account);
+    	bm.activateAccount(new_acc.getID());
+    	test_ask.updateAccountID(new_acc.getID());
+    	
+    	bm.createAsk(new_acc.getID(), test_ask);
     	
     	// test reject bad dates
     	boolean error_caught = false;
     	try {
     		bm.searchAsks("key", "bad date", "another bad date");
     	}
-    	catch (IllegalArgumentException e) {
+    	catch (AssertionError e) {
     		error_caught = true;
     	}
     	assertTrue(error_caught);
