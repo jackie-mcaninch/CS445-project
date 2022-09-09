@@ -14,4 +14,24 @@ public class ErrorResponse {
 		this.instance = instance;
 		this.status = status;
 	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public String getTitle() {
+		return this.title;
+	}
+
+	public String getDetail() {
+		return this.detail;
+	}
+
+	public String getInstance() {
+		return this.instance;
+	}
+
+	public int getStatus() {
+		return this.status;
+	}
 }

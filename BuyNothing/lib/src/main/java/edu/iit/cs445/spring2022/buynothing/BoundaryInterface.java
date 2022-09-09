@@ -16,7 +16,7 @@ public interface BoundaryInterface {
 	void checkMissingAccountInfo(Account a);
 	
 	// ASK METHODS
-	Ask createAsk(String acc_id, Ask a);
+	Ask createAsk(String uid, Ask a);
 	Ask deactivateAsk(String uid, String aid);
 	void updateAsk(String old_id, Ask anew);
 	void deleteAsk(String uid, String aid);
@@ -24,6 +24,7 @@ public interface BoundaryInterface {
 	List<Ask> viewAllAsks();
 	List<Ask> viewAllMyAsks(String aid);
 	List<Ask> viewMyAsks(String uid, boolean is_active);
+	List<Ask> viewAllAsksViewedBy(String uid);
 	Ask viewAsk(String uid);
 	void clearAllAsks();
 	List<Ask> searchAsks(String key, String start_date, String end_date);
@@ -32,13 +33,15 @@ public interface BoundaryInterface {
 	void checkMissingAskInfo(Ask a);
 	
 	// GIVE METHODS
-	Give createGive(Give g);
-	Give deactivateGive(String uid);
+	Give createGive(String uid, Give g);
+	Give deactivateGive(String uid, String gid);
 	void updateGive(String old_id, Give gnew);
-	void deleteGive(String uid);
-	List<String> deleteGiveByAccountID(String aid);
+	void deleteGive(String uid, String gid);
+	List<String> deleteGiveByAccountID(String uid);
 	List<Give> viewAllGives();
+	List<Give> viewAllMyGives(String uid);
 	List<Give> viewMyGives(String uid, boolean is_active);
+	List<Give> viewAllGivesViewedBy(String uid);
 	Give viewGive(String uid);
 	void clearAllGives();
 	List<Give> searchGives(String key, String start_date, String end_date);
@@ -47,12 +50,16 @@ public interface BoundaryInterface {
 	void checkMissingGiveInfo(Give g);
 	
 	// THANK METHODS
-	Thank createThank(Thank t);
+	Thank createThank(String uid, Thank t);
+	Thank deactivateThank(String uid, String tid);
 	void updateThank(String old_id, Thank tnew);
-	void deleteThank(String uid);
-	List<String> deleteThankByAccountID(String aid);
+	void deleteThank(String uid, String tid);
+	List<String> deleteThankByAccountID(String uid);
 	List<Thank> viewAllThanks();
+	List<Thank> viewAllMyThanks(String uid);
 	List<Thank> viewMyThanks(String uid, boolean is_active);
+	List<Thank> viewAllThanksViewedBy(String uid);
+	List<Thank> viewThanksForUser(String uid);
 	Thank viewThank(String uid);
 	void clearAllThanks();
 	List<Thank> searchThanks(String key, String start_date, String end_date);
@@ -61,11 +68,15 @@ public interface BoundaryInterface {
 		
 	// NOTE METHODS
 	Note createNote(Note n);
+	Note deactivateNote(String uid, String nid);
 	void updateNote(String old_id, Note nnew);
-	void deleteNote(String uid);
-	List<String> deleteNoteByAccountID(String aid);
+	void deleteNote(String uid, String nid);
+	List<String> deleteNoteByAccountID(String uid);
 	void deleteNoteByToID(String toid);
+	List<Note> viewAllNotes();
+	List<Note> viewAllMyNotes(String uid);
 	List<Note> viewMyNotes(String uid, boolean is_active);
+	List<Note> viewAllNotesViewedBy(String uid);
 	Note viewNote(String uid);
 	void clearAllNotes();
 	List<Note> searchNotes(String key, String start_date, String end_date);

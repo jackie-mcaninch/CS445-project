@@ -9,6 +9,7 @@ public class Account extends BuyNothingObj {
 	private Address address = new Address();
 	private String phone;
 	private String picture;
+	private boolean is_privileged = false;
 	
 	public Account() {
 		super();
@@ -21,7 +22,12 @@ public class Account extends BuyNothingObj {
 		this.name = a.getName();
 		this.address = new Address(a.getStreet(), a.getZip());
 		this.phone = a.getPhone();
-		this.picture = a.getPicture();		
+		this.picture = a.getPicture();
+		this.is_privileged = a.isPrivileged();
+	}
+
+	public void elevatePrivileges() {
+		this.is_privileged = true;
 	}
 	
 	public void updateName(String new_name) {
@@ -98,6 +104,10 @@ public class Account extends BuyNothingObj {
     	else return false;
     }
     
+	public boolean isPrivileged() {
+		return this.is_privileged;
+	}
+
     public boolean isNil() {
     	return false;
     }

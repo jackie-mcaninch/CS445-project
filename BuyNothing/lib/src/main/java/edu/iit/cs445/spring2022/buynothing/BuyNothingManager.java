@@ -42,6 +42,7 @@ public class BuyNothingManager implements BoundaryInterface {
 		default_account3.updateAddress("101 W Main St.", "60010");
 		default_account3.updatePhone("123-867-5309");
 		default_account3.updatePicture("<link to CSR's picture>");
+		default_account3.elevatePrivileges();
 		
 		// add default accounts to collection and set virgil/csr1 is_active to true
 		createAccount(default_account1).activate();
@@ -173,21 +174,21 @@ public class BuyNothingManager implements BoundaryInterface {
 		if (!acc_id.equals(a.getAccountID())) throw new AssertionError("Account ID does not match URI.");
 		checkMissingAskInfo(a);
 		checkAskType(a);
-		Ask newAsk = new Ask(a);
-		newAsk.create();
-		allAsks.add(newAsk);
-		newAsk.activate();
-		return newAsk;
+		Ask new_ask = new Ask(a);
+		new_ask.create();
+		allAsks.add(new_ask);
+		new_ask.activate();
+		return new_ask;
 	}
 	
 	public Ask deactivateAsk(String uid, String aid) {
 		Account acc = findAccountByID(uid);
-		Ask ask = findAskByID(aid);
+		Ask a = findAskByID(aid);
 		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
-		if (ask.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
-		if (!ask.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
-		ask.deactivate();
-    	return ask;
+		if (a.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
+		if (!a.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		a.deactivate();
+    	return a;
 	}
 	
     public void updateAsk(String old_id, Ask anew) {
@@ -237,15 +238,16 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (allAsks == null) {
 			allAsks = new ArrayList<Ask>();
 		}
-    	List<Ask> myAsks = new ArrayList<Ask>();
+    	List<Ask> my_asks = new ArrayList<Ask>();
     	Iterator<Ask> ask_iter = allAsks.listIterator();
     	while (ask_iter.hasNext()) {
     		Ask a = ask_iter.next();
     		if (a.getAccountID().equals(uid) && a.getActiveStatus()==is_active) {
-    			myAsks.add(a);
+    			a.view(findAccountByID(uid));
+    			my_asks.add(a);
     		}
     	}
-    	return myAsks;
+    	return my_asks;
     }
     
     public List<Ask> viewAllMyAsks(String uid) {
@@ -253,16 +255,26 @@ public class BuyNothingManager implements BoundaryInterface {
 			allAsks = new ArrayList<Ask>();
 		}
     	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
-    	List<Ask> myAsks = new ArrayList<Ask>();
+    	List<Ask> my_asks = new ArrayList<Ask>();
     	Iterator<Ask> ask_iter = allAsks.listIterator();
     	while (ask_iter.hasNext()) {
     		Ask a = ask_iter.next();
-    		myAsks.add(a);
     		if (a.getAccountID().equals(uid)) {
-    			myAsks.add(a);
+    			a.view(findAccountByID(uid));
+    			my_asks.add(a);
     		}
     	}
-    	return myAsks;
+    	return my_asks;
+    }
+    
+    public List<Ask> viewAllAsksViewedBy(String uid) {
+    	List<Ask> filtered_asks = new ArrayList<Ask>();
+    	Iterator<Ask> ask_iter = allAsks.listIterator();
+    	while (ask_iter.hasNext()) {
+    		Ask a = ask_iter.next();
+    		if (a.viewedBy(uid)) filtered_asks.add(a);
+    	}
+    	return filtered_asks;
     }
     
     public Ask viewAsk(String aid) {
@@ -340,10 +352,14 @@ public class BuyNothingManager implements BoundaryInterface {
     
     
     // GIVE METHODS
-    public Give createGive(Give g) {
+    public Give createGive(String acc_id, Give g) {
     	if (allGives == null) {
 			allGives = new ArrayList<Give>();
 		}
+		Account parent_account = findAccountByID(acc_id);
+		if (parent_account.isNil()) throw new NoSuchElementException("No account found for ID: "+acc_id);
+		if (!parent_account.getActiveStatus()) throw new AssertionError("This account "+parent_account.getID()+" is not active an may not create a give.");
+		if (!acc_id.equals(g.getAccountID())) throw new AssertionError("Account ID does not match URI.");
 		checkMissingGiveInfo(g);
 		checkGiveType(g);
 		Give newGive = new Give(g);
@@ -352,11 +368,13 @@ public class BuyNothingManager implements BoundaryInterface {
 		return newGive;
 	}
 	
-	public Give deactivateGive(String gid) {
+	public Give deactivateGive(String uid, String gid) {
+		Account acc = findAccountByID(uid);
 		Give g = findGiveByID(gid);
+		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
 		if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
+		if (!g.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
 		g.deactivate();
-    	allGives.remove(g);
     	return g;
 	}
 	
@@ -368,19 +386,19 @@ public class BuyNothingManager implements BoundaryInterface {
     	gold.updateAccountID(gnew.getAccountID());
     	gold.updateType(gnew.getType());
     	gold.updateDescription(gnew.getDescription());
-    	SimpleDateFormat fmt = new SimpleDateFormat("YYYY-MM-DD");
-    	gold.updateStartDate(fmt.format(gnew.getStartDate()));
-    	gold.updateEndDate(fmt.format(gnew.getEndDate()));
+    	gold.updateStartDate(gnew.getStartDate());
+    	gold.updateEndDate(gnew.getEndDate());
     	gold.updateExtraZip(gnew.getExtraZip());
     }
     
-    public void deleteGive(String gid) {
+    public void deleteGive(String uid, String gid) {
     	Give g = findGiveByID(gid);
     	if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
+    	if (!g.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
     	allGives.remove(g);
     }
     
-    public List<String> deleteGiveByAccountID(String aid) {
+    public List<String> deleteGiveByAccountID(String uid) {
     	if (allGives == null) {
 			allGives = new ArrayList<Give>();
 		}
@@ -388,8 +406,8 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (give_iter.hasNext()) {
     		Give g = give_iter.next();
-    		if (g.getAccountID().equals(aid)) {
-    			deleteGive(g.getID());
+    		if (g.getAccountID().equals(uid)) {
+    			deleteGive(uid, g.getID());
         		deleted.add(g.getID());
     		}
     	}
@@ -401,6 +419,23 @@ public class BuyNothingManager implements BoundaryInterface {
 			allGives = new ArrayList<Give>();
 		}
     	return allGives;
+    }
+    
+    public List<Give> viewAllMyGives(String uid) {
+    	if (allGives == null) {
+			allGives = new ArrayList<Give>();
+		}
+    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
+    	List<Give> myGives = new ArrayList<Give>();
+    	Iterator<Give> give_iter = allGives.listIterator();
+    	while (give_iter.hasNext()) {
+    		Give g = give_iter.next();
+    		if (g.getAccountID().equals(uid)) {
+    			g.view(findAccountByID(uid));
+    			myGives.add(g);
+    		}
+    	}
+    	return myGives;
     }
     
     public List<Give> viewMyGives(String uid, boolean is_active) {
@@ -416,6 +451,16 @@ public class BuyNothingManager implements BoundaryInterface {
     		}
     	}
     	return myGives;
+    }
+    
+    public List<Give> viewAllGivesViewedBy(String uid) {
+    	List<Give> filtered_gives = new ArrayList<Give>();
+    	Iterator<Give> giv_iter = allGives.listIterator();
+    	while (giv_iter.hasNext()) {
+    		Give g = giv_iter.next();
+    		if (g.viewedBy(uid)) filtered_gives.add(g);
+    	}
+    	return filtered_gives;
     }
     
     public Give viewGive(String gid) {
@@ -488,15 +533,30 @@ public class BuyNothingManager implements BoundaryInterface {
     
     
     // THANK METHODS
-    public Thank createThank(Thank t) {
+    public Thank createThank(String uid, Thank t) {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
 		}
+    	Account parent_account = findAccountByID(uid);
+		if (parent_account.isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
+		if (!parent_account.getActiveStatus()) throw new AssertionError("This account "+uid+" is not active an may not create a thank.");
+		if (!uid.equals(t.getAccountID())) throw new AssertionError("Account ID does not match URI.");
 		checkMissingThankInfo(t);
-		Thank newThank = new Thank(t);
-		allThanks.add(newThank);
-		t.activate();
-		return newThank;
+		Thank new_thank = new Thank(t);
+		new_thank.create();
+		allThanks.add(new_thank);
+		new_thank.activate();
+		return new_thank;
+	}
+
+	public Thank deactivateThank(String uid, String tid) {
+		Account acc = findAccountByID(uid);
+		Thank t = findThankByID(tid);
+		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
+		if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
+		if (!t.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		t.deactivate();
+    	return t;
 	}
 	
     public void updateThank(String old_id, Thank tnew) {
@@ -508,13 +568,14 @@ public class BuyNothingManager implements BoundaryInterface {
     	told.updateDescription(tnew.getDescription());
     }
     
-    public void deleteThank(String tid) {
+    public void deleteThank(String uid, String tid) {
     	Thank t = findThankByID(tid);
     	if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
-    	allThanks.remove(t);
+    	if (!t.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		allThanks.remove(t);
     }
     
-    public List<String> deleteThankByAccountID(String aid) {
+    public List<String> deleteThankByAccountID(String uid) {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
 		}
@@ -522,8 +583,8 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (thank_iter.hasNext()) {
     		Thank t = thank_iter.next();
-    		if (t.getAccountID().equals(aid)) {
-    			deleteThank(t.getID());
+    		if (t.getAccountID().equals(uid)) {
+    			deleteThank(uid, t.getID());
         		deleted.add(t.getID());
     		}
     	}
@@ -537,20 +598,57 @@ public class BuyNothingManager implements BoundaryInterface {
     	return allThanks;
     }
     
+    public List<Thank> viewAllMyThanks(String uid) {
+    	if (allThanks == null) {
+			allThanks = new ArrayList<Thank>();
+		}
+    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
+    	List<Thank> my_thanks = new ArrayList<Thank>();
+    	Iterator<Thank> thank_iter = allThanks.listIterator();
+    	while (thank_iter.hasNext()) {
+    		Thank t = thank_iter.next();
+    		if (t.getAccountID().equals(uid)) {
+    			t.view(findAccountByID(uid));
+    			my_thanks.add(t);
+    		}
+    	}
+    	return my_thanks;
+    }
+    
     public List<Thank> viewMyThanks(String uid, boolean is_active) {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
 		}
-    	List<Thank> myThanks = new ArrayList<Thank>();
+    	List<Thank> my_thanks = new ArrayList<Thank>();
     	Iterator<Thank> thank_iter = allThanks.listIterator();
     	while (thank_iter.hasNext()) {
     		Thank t = thank_iter.next();
     		if (t.getAccountID().equals(uid) && t.getActiveStatus()==is_active) {
-    			myThanks.add(t);
+    			my_thanks.add(t);
     		}
     	}
-    	return myThanks;
+    	return my_thanks;
     }
+    
+    public List<Thank> viewAllThanksViewedBy(String uid) {
+    	List<Thank> filtered_thanks = new ArrayList<Thank>();
+    	Iterator<Thank> thank_iter = allThanks.listIterator();
+    	while (thank_iter.hasNext()) {
+    		Thank t = thank_iter.next();
+    		if (t.viewedBy(uid)) filtered_thanks.add(t);
+    	}
+    	return filtered_thanks;
+    }
+
+	public List<Thank> viewThanksForUser(String uid) {
+		List<Thank> filtered_thanks = new ArrayList<Thank>();
+    	Iterator<Thank> thank_iter = allThanks.listIterator();
+    	while (thank_iter.hasNext()) {
+    		Thank t = thank_iter.next();
+    		if (uid.equals(t.getThankTo())) filtered_thanks.add(t);
+    	}
+    	return filtered_thanks;
+	}
     
     public Thank viewThank(String tid) {
     	Thank t = findThankByID(tid);
@@ -570,7 +668,7 @@ public class BuyNothingManager implements BoundaryInterface {
 			allThanks = new ArrayList<Thank>();
 		}
     	if (key==null) return allThanks;
-    	List<Thank> filteredThanks = new ArrayList<Thank>();
+    	List<Thank> filtered_thanks = new ArrayList<Thank>();
     	try {
     		Date start = new SimpleDateFormat("dd-MMM-YYYY").parse(start_date);
     		Date end = new SimpleDateFormat("dd-MMM-YYYY").parse(end_date);
@@ -580,11 +678,11 @@ public class BuyNothingManager implements BoundaryInterface {
         		if (t.checkForKeyword(key)) {
         			Date created = new SimpleDateFormat("dd-MMM-YYYY").parse(t.getDateCreated());
         			if (!created.after(end) && !created.before(start)) {
-        				filteredThanks.add(t);
+        				filtered_thanks.add(t);
         			}
         		}
         	}
-        	return filteredThanks;
+        	return filtered_thanks;
     	}
     	// Date cannot be parsed
     	catch (Exception e) {
@@ -622,7 +720,17 @@ public class BuyNothingManager implements BoundaryInterface {
 		allNotes.add(newNote);
 		return newNote;
 	}
-	
+    
+    public Note deactivateNote(String uid, String nid) {
+		Account acc = findAccountByID(uid);
+		Note n = findNoteByID(nid);
+		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
+		if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
+		if (!n.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		n.deactivate();
+    	return n;
+	}
+
     public void updateNote(String old_id, Note nnew) {
     	Note nold = findNoteByID(old_id);
     	if (nold.isNil() || !nold.getActiveStatus()) throw new NoSuchElementException("No note found for ID: "+old_id);
@@ -635,13 +743,14 @@ public class BuyNothingManager implements BoundaryInterface {
     	nold.updateDescription(nnew.getDescription());
     }
     
-    public void deleteNote(String nid) {
+    public void deleteNote(String uid, String nid) {
     	Note n = findNoteByID(nid);
     	if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
-    	allNotes.remove(n);
+    	if (!n.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
+		allNotes.remove(n);
     }
     
-    public List<String> deleteNoteByAccountID(String aid) {
+    public List<String> deleteNoteByAccountID(String uid) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
 		}
@@ -649,15 +758,15 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (note_iter.hasNext()) {
     		Note n = note_iter.next();
-    		if (n.getAccountID().equals(aid)) {
-    			deleteNote(n.getID());
+    		if (n.getAccountID().equals(uid)) {
+    			deleteNote(uid, n.getID());
         		deleted.add(n.getID());
     		}
     	}
     	return deleted;
     }
     
-    public void deleteNoteByToID(String toid) {
+    public void deleteNoteByToID(String to_id) {
     	// TODO: straighten out recursive references
     	
     	if (allNotes == null) {
@@ -667,8 +776,8 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (note_iter.hasNext()) {
     		Note n = note_iter.next();
-    		if (n.getToID().equals(toid)) {
-    			deleteNote(n.getID());
+    		if (n.getToID().equals(to_id)) {
+    			deleteNote(n.getAccountID(), n.getID());
         		deleted.add(n.getID());
     		}
     	}
@@ -686,6 +795,23 @@ public class BuyNothingManager implements BoundaryInterface {
     	return allNotes;
     }
     
+    public List<Note> viewAllMyNotes(String uid) {
+    	if (allNotes == null) {
+			allNotes = new ArrayList<Note>();
+		}
+    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
+    	List<Note> myNotes = new ArrayList<Note>();
+    	Iterator<Note> note_iter = allNotes.listIterator();
+    	while (note_iter.hasNext()) {
+    		Note n = note_iter.next();
+    		if (n.getAccountID().equals(uid)) {
+    			n.view(findAccountByID(uid));
+    			myNotes.add(n);
+    		}
+    	}
+    	return myNotes;
+    }
+    
     public List<Note> viewMyNotes(String uid, boolean is_active) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
@@ -699,6 +825,16 @@ public class BuyNothingManager implements BoundaryInterface {
     		}
     	}
     	return myNotes;
+    }
+    
+    public List<Note> viewAllNotesViewedBy(String uid) {
+    	List<Note> filtered_notes = new ArrayList<Note>();
+    	Iterator<Note> note_iter = allNotes.listIterator();
+    	while (note_iter.hasNext()) {
+    		Note n = note_iter.next();
+    		if (n.viewedBy(uid)) filtered_notes.add(n);
+    	}
+    	return filtered_notes;
     }
     
     public Note viewNote(String nid) {

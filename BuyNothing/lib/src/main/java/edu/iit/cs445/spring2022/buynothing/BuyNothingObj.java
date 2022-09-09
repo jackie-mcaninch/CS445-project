@@ -3,7 +3,6 @@ package edu.iit.cs445.spring2022.buynothing;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
 
 public abstract class BuyNothingObj {
 	protected boolean is_active;
