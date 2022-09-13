@@ -62,11 +62,12 @@ public class BuyNothingManager implements BoundaryInterface {
 		return newAccount;
 	}
 	
-	public void activateAccount(String uid) {
+	public Account activateAccount(String uid) {
 		Account a = findAccountByID(uid);
 		if (a.isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
 		checkMissingAccountInfo(a);
 		a.activate();
+		return a;
 	}
 	
     public void updateAccount(String old_id, Account anew) {
@@ -226,55 +227,64 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	return deleted;
     }
+
+	public List<Ask> viewAsks(String uid, String is_active) {
+		if (allAsks == null) {
+			allAsks = new ArrayList<Ask>();
+			return allAsks;
+		}
+		Account acc = findAccountByID(uid);
+		if (acc.isPrivileged()) {
+			List<Ask> asks = new ArrayList<Ask>();
+			Iterator<Ask> ask_iter = allAsks.listIterator();
+			while (ask_iter.hasNext()) {
+				Ask a = ask_iter.next();
+				switch (is_active) {
+					case "":
+						asks.add(a);
+						break;
+					case "true":
+						if (a.getActiveStatus()) asks.add(a);
+						break;
+					case "false":
+						if (!a.getActiveStatus()) asks.add(a);
+						break;
+					default:
+						throw new AssertionError("Invalid value for parameter /'is_active/'.");
+				}
+			}
+			return asks;
+		}
+		else {
+			return viewMyAsks(uid, is_active);
+		}
+	}
     
-    public List<Ask> viewAllAsks() {
+    public List<Ask> viewMyAsks(String uid, String is_active) {
     	if (allAsks == null) {
 			allAsks = new ArrayList<Ask>();
 		}
-    	return allAsks;
-    }
-    
-    public List<Ask> viewMyAsks(String uid, boolean is_active) {
-    	if (allAsks == null) {
-			allAsks = new ArrayList<Ask>();
-		}
-    	List<Ask> my_asks = new ArrayList<Ask>();
-    	Iterator<Ask> ask_iter = allAsks.listIterator();
-    	while (ask_iter.hasNext()) {
-    		Ask a = ask_iter.next();
-    		if (a.getAccountID().equals(uid) && a.getActiveStatus()==is_active) {
-    			a.view(findAccountByID(uid));
-    			my_asks.add(a);
-    		}
-    	}
-    	return my_asks;
-    }
-    
-    public List<Ask> viewAllMyAsks(String uid) {
-    	if (allAsks == null) {
-			allAsks = new ArrayList<Ask>();
-		}
-    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
     	List<Ask> my_asks = new ArrayList<Ask>();
     	Iterator<Ask> ask_iter = allAsks.listIterator();
     	while (ask_iter.hasNext()) {
     		Ask a = ask_iter.next();
     		if (a.getAccountID().equals(uid)) {
-    			a.view(findAccountByID(uid));
-    			my_asks.add(a);
+				switch (is_active) {
+					case "":
+						my_asks.add(a);
+						break;
+					case "true":
+						if (a.getActiveStatus()) my_asks.add(a);
+						break;
+					case "false":
+						if (!a.getActiveStatus()) my_asks.add(a);
+						break;
+					default:
+						throw new AssertionError("Invalid value for parameter /'is_active/'.");
+				}
     		}
     	}
     	return my_asks;
-    }
-    
-    public List<Ask> viewAllAsksViewedBy(String uid) {
-    	List<Ask> filtered_asks = new ArrayList<Ask>();
-    	Iterator<Ask> ask_iter = allAsks.listIterator();
-    	while (ask_iter.hasNext()) {
-    		Ask a = ask_iter.next();
-    		if (a.viewedBy(uid)) filtered_asks.add(a);
-    	}
-    	return filtered_asks;
     }
     
     public Ask viewAsk(String aid) {
@@ -413,54 +423,64 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	return deleted;
     }
+
+	public List<Give> viewGives(String uid, String is_active) {
+		if (allGives == null) {
+			allGives = new ArrayList<Give>();
+			return allGives;
+		}
+		Account acc = findAccountByID(uid);
+		if (acc.isPrivileged()) {
+			List<Give> gives = new ArrayList<Give>();
+			Iterator<Give> give_iter = allGives.listIterator();
+			while (give_iter.hasNext()) {
+				Give g = give_iter.next();
+				switch (is_active) {
+					case "":
+						gives.add(g);
+						break;
+					case "true":
+						if (g.getActiveStatus()) gives.add(g);
+						break;
+					case "false":
+						if (!g.getActiveStatus()) gives.add(g);
+						break;
+					default:
+						throw new AssertionError("Invalid value for parameter /'is_active/'.");
+				}
+			}
+			return gives;
+		}
+		else {
+			return viewMyGives(uid, is_active);
+		}		
+	}
     
-    public List<Give> viewAllGives() {
+    public List<Give> viewMyGives(String uid, String is_active) {
     	if (allGives == null) {
 			allGives = new ArrayList<Give>();
 		}
-    	return allGives;
-    }
-    
-    public List<Give> viewAllMyGives(String uid) {
-    	if (allGives == null) {
-			allGives = new ArrayList<Give>();
-		}
-    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
-    	List<Give> myGives = new ArrayList<Give>();
+    	List<Give> my_gives = new ArrayList<Give>();
     	Iterator<Give> give_iter = allGives.listIterator();
     	while (give_iter.hasNext()) {
-    		Give g = give_iter.next();
+			Give g = give_iter.next();
     		if (g.getAccountID().equals(uid)) {
-    			g.view(findAccountByID(uid));
-    			myGives.add(g);
+				switch (is_active) {
+					case "":
+						my_gives.add(g);
+						break;
+					case "true":
+						if (g.getActiveStatus()) my_gives.add(g);
+						break;
+					case "false":
+						if (!g.getActiveStatus()) my_gives.add(g);
+						break;
+					default:
+						throw new AssertionError("Invalid value for parameter /'is_active/'.");
+				}
     		}
     	}
-    	return myGives;
-    }
-    
-    public List<Give> viewMyGives(String uid, boolean is_active) {
-    	if (allGives == null) {
-			allGives = new ArrayList<Give>();
-		}
-    	List<Give> myGives = new ArrayList<Give>();
-    	Iterator<Give> give_iter = allGives.listIterator();
-    	while (give_iter.hasNext()) {
-    		Give g = give_iter.next();
-    		if (g.getAccountID().equals(uid) && g.getActiveStatus()==is_active) {
-    			myGives.add(g);
-    		}
-    	}
-    	return myGives;
-    }
-    
-    public List<Give> viewAllGivesViewedBy(String uid) {
-    	List<Give> filtered_gives = new ArrayList<Give>();
-    	Iterator<Give> giv_iter = allGives.listIterator();
-    	while (giv_iter.hasNext()) {
-    		Give g = giv_iter.next();
-    		if (g.viewedBy(uid)) filtered_gives.add(g);
-    	}
-    	return filtered_gives;
+    	return my_gives;
     }
     
     public Give viewGive(String gid) {
@@ -591,53 +611,38 @@ public class BuyNothingManager implements BoundaryInterface {
     	return deleted;
     }
     
-    public List<Thank> viewAllThanks() {
+    public List<Thank> viewThanks(String uid, String is_active) {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
 		}
     	return allThanks;
     }
     
-    public List<Thank> viewAllMyThanks(String uid) {
+    public List<Thank> viewMyThanks(String uid, String is_active) {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
-		}
-    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
-    	List<Thank> my_thanks = new ArrayList<Thank>();
-    	Iterator<Thank> thank_iter = allThanks.listIterator();
-    	while (thank_iter.hasNext()) {
-    		Thank t = thank_iter.next();
-    		if (t.getAccountID().equals(uid)) {
-    			t.view(findAccountByID(uid));
-    			my_thanks.add(t);
-    		}
-    	}
-    	return my_thanks;
-    }
-    
-    public List<Thank> viewMyThanks(String uid, boolean is_active) {
-    	if (allThanks == null) {
-			allThanks = new ArrayList<Thank>();
+			return allThanks;
 		}
     	List<Thank> my_thanks = new ArrayList<Thank>();
     	Iterator<Thank> thank_iter = allThanks.listIterator();
     	while (thank_iter.hasNext()) {
     		Thank t = thank_iter.next();
-    		if (t.getAccountID().equals(uid) && t.getActiveStatus()==is_active) {
-    			my_thanks.add(t);
-    		}
+    		
+			switch (is_active) {
+				case "":
+					my_thanks.add(t);
+					break;
+				case "true":
+					if (t.getActiveStatus()) my_thanks.add(t);
+					break;
+				case "false":
+					if (!t.getActiveStatus()) my_thanks.add(t);
+					break;
+				default:
+					throw new AssertionError("Invalid value for parameter /'is_active/'.");
+			}
     	}
     	return my_thanks;
-    }
-    
-    public List<Thank> viewAllThanksViewedBy(String uid) {
-    	List<Thank> filtered_thanks = new ArrayList<Thank>();
-    	Iterator<Thank> thank_iter = allThanks.listIterator();
-    	while (thank_iter.hasNext()) {
-    		Thank t = thank_iter.next();
-    		if (t.viewedBy(uid)) filtered_thanks.add(t);
-    	}
-    	return filtered_thanks;
     }
 
 	public List<Thank> viewThanksForUser(String uid) {
@@ -788,53 +793,36 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     }
     
-    public List<Note> viewAllNotes() {
+    public List<Note> viewNotes(String uid, String is_active) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
 		}
     	return allNotes;
     }
     
-    public List<Note> viewAllMyNotes(String uid) {
-    	if (allNotes == null) {
-			allNotes = new ArrayList<Note>();
-		}
-    	if (findAccountByID(uid).isNil()) throw new NoSuchElementException("No account found for ID: "+uid);
-    	List<Note> myNotes = new ArrayList<Note>();
-    	Iterator<Note> note_iter = allNotes.listIterator();
-    	while (note_iter.hasNext()) {
-    		Note n = note_iter.next();
-    		if (n.getAccountID().equals(uid)) {
-    			n.view(findAccountByID(uid));
-    			myNotes.add(n);
-    		}
-    	}
-    	return myNotes;
-    }
-    
-    public List<Note> viewMyNotes(String uid, boolean is_active) {
+    public List<Note> viewMyNotes(String uid, String is_active) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
 		}
-    	List<Note> myNotes = new ArrayList<Note>();
+    	List<Note> my_notes = new ArrayList<Note>();
     	Iterator<Note> note_iter = allNotes.listIterator();
     	while (note_iter.hasNext()) {
     		Note n = note_iter.next();
-    		if (n.getAccountID().equals(uid) && n.getActiveStatus()==is_active) {
-    			myNotes.add(n);
-    		}
+			switch (is_active) {
+				case "":
+					my_notes.add(n);
+					break;
+				case "true":
+					if (n.getActiveStatus()) my_notes.add(n);
+					break;
+				case "false":
+					if (!n.getActiveStatus()) my_notes.add(n);
+					break;
+				default:
+					throw new AssertionError("Invalid value for parameter /'is_active/'.");
+			}
     	}
-    	return myNotes;
-    }
-    
-    public List<Note> viewAllNotesViewedBy(String uid) {
-    	List<Note> filtered_notes = new ArrayList<Note>();
-    	Iterator<Note> note_iter = allNotes.listIterator();
-    	while (note_iter.hasNext()) {
-    		Note n = note_iter.next();
-    		if (n.viewedBy(uid)) filtered_notes.add(n);
-    	}
-    	return filtered_notes;
+    	return my_notes;
     }
     
     public Note viewNote(String nid) {

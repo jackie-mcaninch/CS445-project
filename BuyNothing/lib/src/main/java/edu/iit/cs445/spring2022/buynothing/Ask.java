@@ -1,8 +1,5 @@
 package edu.iit.cs445.spring2022.buynothing;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -14,7 +11,6 @@ public class Ask extends BuyNothingObj {
 	private String start_date;
 	private String end_date;
 	private String[] extra_zip;
-	private List<Account> viewed_by = new ArrayList<Account>();
 		
 	public Ask() {
 		super();
@@ -83,19 +79,6 @@ public class Ask extends BuyNothingObj {
 	
 	public String getID() {
 		return this.aid;
-	}
-	
-	public void view(Account a) {
-		if (!this.viewed_by.contains(a)) this.viewed_by.add(a);
-	}
-	
-	public boolean viewedBy(String uid) {
-		Iterator<Account> acc_iter = this.viewed_by.listIterator();
-    	while (acc_iter.hasNext()) {
-    		Account a = acc_iter.next();
-    		if (a.matchesID(uid)) return true;
-    	}
-    	return false;
 	}
 	
 	public boolean matchesID(String aid) {
