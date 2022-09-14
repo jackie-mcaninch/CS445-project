@@ -8,12 +8,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.google.gson.Gson;
+
 public class BuyNothingManager implements BoundaryInterface {
 	private static List<Account> allAccounts;
 	private static List<Ask> allAsks;
 	private static List<Give> allGives;
 	private static List<Thank> allThanks;
 	private static List<Note> allNotes;
+	private static List<NoteGroup> groupedNotes;
+	private static List<Report> allReports;
 	
 	private static final String[] ASK_TYPES = {"gift", "borrow", "help"};
 	private static final String[] GIVE_TYPES = {"gift", "service", "lend", "share"};
@@ -56,10 +60,10 @@ public class BuyNothingManager implements BoundaryInterface {
 		}
 		checkMissingAccountInfo(a);
 		if (a.getActiveStatus()) throw new AssertionError("You may not use PUT to activate an account, use GET /accounts/"+a.getID()+"/activate instead");
-		Account newAccount = new Account(a);
-		newAccount.create();
-		allAccounts.add(newAccount);
-		return newAccount;
+		Account new_account = new Account(a);
+		new_account.create();
+		allAccounts.add(new_account);
+		return new_account;
 	}
 	
 	public Account activateAccount(String uid) {
@@ -210,6 +214,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (a.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
     	if (!a.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
     	allAsks.remove(a);
+		// deleteNoteByToID(aid);
     }
     
     public List<String> deleteAskByAccountID(String uid) {
@@ -406,6 +411,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (g.isNil()) throw new NoSuchElementException("No give found for ID: "+gid);
     	if (!g.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
     	allGives.remove(g);
+		deleteNoteByToID(gid);
     }
     
     public List<String> deleteGiveByAccountID(String uid) {
@@ -593,6 +599,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
     	if (!t.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
 		allThanks.remove(t);
+		deleteNoteByToID(tid);
     }
     
     public List<String> deleteThankByAccountID(String uid) {
@@ -718,22 +725,40 @@ public class BuyNothingManager implements BoundaryInterface {
     public Note createNote(Note n) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
+			groupedNotes = new ArrayList<NoteGroup>();
 		}
 		checkMissingNoteInfo(n);
 		checkNoteToType(n);
-		Note newNote = new Note(n);
-		allNotes.add(newNote);
-		return newNote;
-	}
-    
-    public Note deactivateNote(String uid, String nid) {
-		Account acc = findAccountByID(uid);
-		Note n = findNoteByID(nid);
-		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
-		if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
-		if (!n.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
-		n.deactivate();
-    	return n;
+		Note new_note = new Note(n);
+		allNotes.add(new_note);
+
+		// detect any new references to an ask or give
+		if (!new_note.getToType().equals("note")) {
+			Conversation new_convo = new Conversation(new_note.getAccountID());
+			new_convo.addNote(new_note);
+			NoteGroup msg_group = findNoteGroupByUID(new_note.getToUserID());
+			if (msg_group.isNil()) {
+				NoteGroup new_msg_group = new NoteGroup(new_note.getToUserID(), new_note.getToID());
+				groupedNotes.add(new_msg_group);
+			}
+			else {
+				msg_group.addConversation(new_convo);
+			}
+		}
+		// otherwise find parent resource and add nested
+		else {
+			NoteGroup msg_group = findNoteGroupByUID(findOriginalSourceUID(new_note));
+			List<Conversation> convos = msg_group.getConversations();
+			Iterator<Conversation> convo_iter = convos.listIterator();
+			while (convo_iter.hasNext()) {
+				Conversation c = convo_iter.next();
+				if (c.getWithUID().equals(new_note.getAccountID()) ||
+					c.getWithUID().equals(new_note.getToUserID())) {
+					c.addNote(new_note);
+				}
+			}
+		}
+		return new_note;
 	}
 
     public void updateNote(String old_id, Note nnew) {
@@ -753,6 +778,8 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (n.isNil()) throw new NoSuchElementException("No note found for ID: "+nid);
     	if (!n.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
 		allNotes.remove(n);
+		// delete all subordinated resources
+		deleteNoteByToID(nid);
     }
     
     public List<String> deleteNoteByAccountID(String uid) {
@@ -763,7 +790,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	List<String> deleted = new ArrayList<String>();
     	while (note_iter.hasNext()) {
     		Note n = note_iter.next();
-    		if (n.getAccountID().equals(uid)) {
+    		if (n.getAccountID().equals(uid) || n.getToID().equals(uid)) {
     			deleteNote(uid, n.getID());
         		deleted.add(n.getID());
     		}
@@ -772,11 +799,6 @@ public class BuyNothingManager implements BoundaryInterface {
     }
     
     public void deleteNoteByToID(String to_id) {
-    	// TODO: straighten out recursive references
-    	
-    	if (allNotes == null) {
-    		allNotes = new ArrayList<Note>();
-		}
     	Iterator<Note> note_iter = allNotes.listIterator();
     	List<String> deleted = new ArrayList<String>();
     	while (note_iter.hasNext()) {
@@ -793,36 +815,33 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     }
     
-    public List<Note> viewNotes(String uid, String is_active) {
+    public String viewNotes(String c_by, String v_by, String type, String agid) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
+			groupedNotes = new ArrayList<NoteGroup>();
 		}
-    	return allNotes;
-    }
-    
-    public List<Note> viewMyNotes(String uid, String is_active) {
-    	if (allNotes == null) {
-    		allNotes = new ArrayList<Note>();
-		}
-    	List<Note> my_notes = new ArrayList<Note>();
-    	Iterator<Note> note_iter = allNotes.listIterator();
-    	while (note_iter.hasNext()) {
-    		Note n = note_iter.next();
-			switch (is_active) {
-				case "":
-					my_notes.add(n);
-					break;
-				case "true":
-					if (n.getActiveStatus()) my_notes.add(n);
-					break;
-				case "false":
-					if (!n.getActiveStatus()) my_notes.add(n);
-					break;
-				default:
-					throw new AssertionError("Invalid value for parameter /'is_active/'.");
-			}
-    	}
-    	return my_notes;
+
+		// Iterator<Note> note_iter = allNotes.listIterator();
+		// Note n;
+		// while (note_iter.hasNext()) {
+		// 	n = note_iter.next();
+		// 	if (n.getAccountID().equals(v_by) || n.getToUserID().equals(v_by) || v_by.equals("")) {
+		// 		if (n.getToType().equals(type) || type.equals("")) {
+		// 			switch (n.getToType()) {
+		// 				case "give":
+		// 					break;
+		// 				case "ask":
+		// 					break;
+		// 				case "note":
+		// 					break;
+		// 				default:
+		// 					throw new AssertionError("Invalid to_type for Note: "+n.getToType());
+		// 			}
+		// 		}
+		// 	}
+		// }
+		Gson gson = new Gson();
+    	return gson.toJson(groupedNotes);
     }
     
     public Note viewNote(String nid) {
@@ -864,17 +883,40 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     }
     
-    public Note findNoteByID(String uid) {
+    public Note findNoteByID(String nid) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
 		}
     	Iterator<Note> note_iter = allNotes.listIterator();
     	while (note_iter.hasNext()) {
     		Note n = note_iter.next();
-    		if (n.matchesID(uid)) return n;
+    		if (n.matchesID(nid)) return n;
     	}
     	return (new NullNote());
     }
+
+	public NoteGroup findNoteGroupByUID(String uid) {
+		if (groupedNotes == null) {
+    		groupedNotes = new ArrayList<NoteGroup>();
+		}
+		Iterator<NoteGroup> ng_iter = groupedNotes.listIterator();
+		while (ng_iter.hasNext()) {
+			NoteGroup ng = ng_iter.next();
+			if (ng.getUID().equals(uid)) {
+				return ng;
+			}
+		}
+		return (new NullNoteGroup());
+	}
+
+	public String findOriginalSourceUID(Note n) {
+		if (n.getToType().equals("note")) {
+			return findOriginalSourceUID(findNoteByID(n.getToID()));
+		}
+		else {
+			return n.getToUserID();
+		}
+	}
     
     public void checkNoteToType(Note n) {
     	String myType = n.getToType();
@@ -892,4 +934,61 @@ public class BuyNothingManager implements BoundaryInterface {
     	if (n.getToID()==null) throw new AssertionError("To ID field is missing!");
     	if (n.getDescription()==null) throw new AssertionError("Description is missing!");
     }
+
+
+	// REPORT METHODS
+	public void createDefaultReports() {
+		allReports = new ArrayList<Report>();
+
+		// set 2 default reports
+		Report default_report1 = new Report();
+		default_report1.updateName("Asks/gives broken down by zip");
+
+		Report default_report2 = new Report();
+		default_report2.updateName("Asks/gives and communications for a user");
+
+		// add default reports to collection
+		createReport(default_report1);
+		createReport(default_report2);
+	}
+
+	public Report createReport(Report r) {
+		if (allReports == null) {
+			createDefaultReports();
+		}
+		Report new_report = new Report(r);
+		allReports.add(new_report);
+		return new_report;
+	}
+
+	public List<Report> viewAllReports() {
+		if (allReports == null) {
+			createDefaultReports();
+		}
+		return allReports;
+	}
+
+	public String generateReport(String rid, String c_by, String v_by, String start, String end) {
+		Report rep = findReportByID(rid);
+		if (rep.getName().contains("zip")) {
+
+		}
+		else if (rep.getName().contains("user")) {
+
+		}
+		else throw new NoSuchElementException("Not a valid report.");
+		return "";
+	}
+
+	public Report findReportByID(String rid) {
+		if (allReports == null) {
+    		allReports = new ArrayList<Report>();
+		}
+    	Iterator<Report> report_iter = allReports.listIterator();
+    	while (report_iter.hasNext()) {
+    		Report r = report_iter.next();
+    		if (r.matchesID(rid)) return r;
+    	}
+    	return (new NullReport());
+	}
 }

@@ -30,7 +30,7 @@ public class REST_controller {
 	@Path("accounts")
     @GET
     public Response viewAccounts(@QueryParam("key") String key, 
-							     @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+							     @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
 							     @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {		
     	try {
 			// if no keyword provided, display all accounts and return 200 on success
@@ -144,14 +144,15 @@ public class REST_controller {
     		return notFoundHandler(e.getMessage(), "/accounts/"+acc_id);
         }
     }
-    
+
+
     // VIEW ALL ASKS OR FILTERED SET
     @Path("asks")
 	@GET
 	public Response viewAsks(@DefaultValue("") @QueryParam("key") String key,
 							 @DefaultValue("") @QueryParam("v_by") String uid,
 							 @DefaultValue("") @QueryParam("is_active") String is_active,
- 							 @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+ 							 @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
  							 @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
      	try {
 			String s;
@@ -290,13 +291,14 @@ public class REST_controller {
     	}
     }
     
+
     // VIEW ALL GIVES OR FILTERED SET
     @Path("gives")
 	@GET
 	public Response viewGives(@DefaultValue("") @QueryParam("key") String key,
 							  @DefaultValue("") @QueryParam("v_by") String uid,
 							  @DefaultValue("") @QueryParam("is_active") String is_active,
- 							  @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+ 							  @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
  							  @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
      	try {
 			String s;
@@ -436,15 +438,13 @@ public class REST_controller {
     }
 
 
-
-
 	// VIEW ALL THANKS OR FILTERED SET
     @Path("thanks")
 	@GET
 	public Response viewThanks(@DefaultValue("") @QueryParam("key") String key,
 							   @DefaultValue("") @QueryParam("v_by") String uid,
 							   @DefaultValue("") @QueryParam("is_active") String is_active,
-							   @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+							   @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
 							   @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
      	try {
 			String s;
@@ -541,25 +541,6 @@ public class REST_controller {
 			return badRequestHandler(e.getMessage(), "/accounts/"+acc_id);
         }
     }
-    
-    // DEACTIVATE THANK
-    @Path("/accounts/{uid}/thanks/{tid}/deactivate")
-    @GET
-    public Response deactivateThank(@PathParam("uid") String acc_id, @PathParam("tid") String thk_id) {
-    	// deactivate thank and return 200 on success
-    	try {
-    		String s = gson.toJson(bi.deactivateThank(acc_id, thk_id));
-    		return Response.status(Response.Status.OK).entity(s).build();
-    	}
-    	// return 404 if the account or ask does not exist
-    	catch (NoSuchElementException e) {
-    		return notFoundHandler(e.getMessage(), "/accounts/"+acc_id+"/thanks/"+thk_id+"/deactivate");
-    	}
-    	// return 400 if request is not valid
-    	catch (AssertionError e) {
-    		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/thanks/"+thk_id+"/deactivate");
-    	}
-    }
 
     // UPDATE THANK
     @Path("accounts/{uid}/thanks/{tid}")
@@ -582,42 +563,25 @@ public class REST_controller {
     		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/thanks/"+thk_id);
 	    }
     }
-
-    // DELETE THANK
-    @Path("accounts/{uid}/thanks/{tid}")
-    @DELETE
-    public Response deleteThank(@PathParam("uid") String acc_id, @PathParam("tid") String thk_id) {
-        // delete account and return 204 on success
-    	try {
-    		bi.deleteThank(acc_id, thk_id);
-    	    return Response.status(Response.Status.NO_CONTENT).build();
-    	} 
-    	// return 404 if the account does not exist
-    	catch (NoSuchElementException e) {
-    		return notFoundHandler(e.getMessage(), "/accounts/"+acc_id+"/thanks/"+thk_id);
-        }
-    	// return 400 if request is not valid
-    	catch (AssertionError e) {
-    		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/asks/"+thk_id);
-    	}
-    }
 	
 
 	// VIEW ALL NOTES OR FILTERED SET
     @Path("notes")
 	@GET
 	public Response viewNotes(@DefaultValue("") @QueryParam("key") String key,
+							  @DefaultValue("") @QueryParam("c_by") String created_by_id,
 							  @DefaultValue("") @QueryParam("v_by") String uid,
-							  @DefaultValue("") @QueryParam("is_active") String is_active,
-							  @DefaultValue("01-Jan-2000") @QueryParam("start_date") String start,
+							  @DefaultValue("") @QueryParam("type") String type,
+							  @DefaultValue("") @QueryParam("agid") String agid,
+							  @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
 							  @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
      	try {
 			String s;
 			// if no keyword provided, display all accounts according to criteria and return 200 on success
 			if (key.equals("")) {
-				s = gson.toJson(bi.viewNotes(uid, is_active));
+				s = bi.viewNotes(created_by_id, uid, type, agid);
 			}
-			// display all accounts within criteria and return 200 on success
+			// display all notes within criteria and return 200 on success
 			else {
 				s = gson.toJson(bi.searchNotes(key, start, end));
 			}
@@ -644,26 +608,6 @@ public class REST_controller {
         }
     }
     
-    // VIEW MY NOTES
-    @Path("/accounts/{uid}/notes")
-    @GET
-    public Response viewMyNotes(@PathParam("uid") String acc_id,
-    						    @DefaultValue("") @QueryParam("is_active") String is_active) {
-    	// collect all notes for a user and return 200 on success
-	  	try {
-			String s = gson.toJson(bi.viewMyNotes(acc_id, is_active));
-			return Response.status(Response.Status.OK).entity(s).build();
-	  	}
-	  	// return 404 if the account does not exist
-	  	catch (NoSuchElementException e) {
-    		return notFoundHandler(e.getMessage(), "/accounts/"+acc_id+"/notes");
-	    }
-	  	// return 400 if request is not valid
-	  	catch (AssertionError e) {
-    		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/notes");
-	  	}
-    }
-    
     // CREATE NEW NOTE
     @Path("notes")
     @POST
@@ -686,25 +630,6 @@ public class REST_controller {
         catch (AssertionError e) {
 			return badRequestHandler(e.getMessage(), "/notes");
         }
-    }
-    
-    // DEACTIVATE NOTE
-    @Path("/accounts/{uid}/notes/{nid}/deactivate")
-    @GET
-    public Response deactivateNote(@PathParam("uid") String acc_id, @PathParam("nid") String not_id) {
-    	// deactivate note and return 200 on success
-    	try {
-    		String s = gson.toJson(bi.deactivateNote(acc_id, not_id));
-    		return Response.status(Response.Status.OK).entity(s).build();
-    	}
-    	// return 404 if the account or ask does not exist
-    	catch (NoSuchElementException e) {
-    		return notFoundHandler(e.getMessage(), "/accounts/"+acc_id+"/notes/"+not_id+"/deactivate");
-    	}
-    	// return 400 if request is not valid
-    	catch (AssertionError e) {
-    		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/notes/"+not_id+"/deactivate");
-    	}
     }
 
     // UPDATE NOTE
@@ -730,7 +655,7 @@ public class REST_controller {
     }
 
     // DELETE NOTE
-    @Path("accounts/{uid}/notes/{nid}")
+    @Path("notes/{nid}")
     @DELETE
     public Response deleteNote(@PathParam("uid") String acc_id, @PathParam("nid") String not_id) {
         // delete account and return 204 on success
@@ -747,6 +672,38 @@ public class REST_controller {
     		return badRequestHandler(e.getMessage(), "/accounts/"+acc_id+"/asks/"+not_id);
     	}
     }
+
+
+	// VIEW ALL REPORTS
+	@Path("reports")
+	@GET
+	public Response viewAllReports() {
+		String s = gson.toJson(bi.viewAllReports());
+		return Response.status(Response.Status.OK).entity(s).build();
+	}
+
+	// VIEW FILTERED REPORTS
+	@Path("reports/{rid}")
+	@GET
+	public Response viewReport(@PathParam("rid") String rep_id,
+							   @DefaultValue("") @QueryParam("c_by") String created_by_id,
+							   @DefaultValue("") @QueryParam("v_by") String viewed_by_id,
+							   @DefaultValue("01-Jan-1970") @QueryParam("start_date") String start,
+							   @DefaultValue("01-Jan-2100") @QueryParam("end_date") String end) {
+		try {
+			// display report generated from user criteria
+			String s = gson.toJson(bi.generateReport(rep_id, created_by_id, viewed_by_id, start, end));
+			return Response.status(Response.Status.OK).entity(s).build();
+		}
+		// return 404 if the rid, c_by_id, or v_by_id does not exist
+    	catch (NoSuchElementException e) {
+    		return notFoundHandler(e.getMessage(), "/reports/"+rep_id);
+        }
+    	// return 400 if request is not valid
+    	catch (AssertionError e) {
+    		return badRequestHandler(e.getMessage(), "/reports/"+rep_id);
+    	}
+	}
 
 
 	// Error handler for NoSuchElementException
