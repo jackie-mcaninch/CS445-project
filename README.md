@@ -72,7 +72,7 @@ If you want detailed unit test coverage then execute the jacocoTestReport task:
 ```
 The html coverage report is available at `lib/build/reports/jacoco/test/html/index.html`
 
-Or, to make things easier, a Makefile has been provided in the BuyNothing directory. To generate the .war file only, run `make`. To generate and open the test report, first install `xdg-open` using apt-get and then run `make test`.
+Or, to make things easier, a Makefile has been provided in the BuyNothing directory. To generate the .war file only, run `make`. To generate and open the test report, first install `xdg-open` using apt-get and then run `make test`. To remove any previous builds, run `make clean`.
 
 (vii) Deployment instructions
 
