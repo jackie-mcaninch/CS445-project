@@ -50,7 +50,7 @@ cd ~/Downloads ; sudo unzip -d /opt/tomcat apache-tomcat-10.0.16.zip`
 ```
 (iv) Clone this repository:
 ```
-https://github.com/jackie-mcaninch/CS445-project/edit/main/README.md`
+https://github.com/jackie-mcaninch/CS445-project`
 ```
 (v) Build the executable:
 ```
@@ -71,6 +71,8 @@ If you want detailed unit test coverage then execute the jacocoTestReport task:
 ./gradlew jacocoTestReport
 ```
 The html coverage report is available at `lib/build/reports/jacoco/test/html/index.html`
+
+Or, to make things easier, a Makefile has been provided in the BuyNothing directory. To generate the .war file only, run `make`. To generate and open the test report, first install `xdg-open` using apt-get and then run `make test`.
 
 (vii) Deployment instructions
 
@@ -102,8 +104,3 @@ which will print both the response HTTP header and the body.
     + Hover over the "Buy Nothing Tests" name, press the ellipsis on the right of the name, and select "Run Collection" from that menu.
   Make sure the "cs445 REST - localhost" is selected from the pull down menu in the upper right.
     + Click on the blue "Run Buy Nothing Tests" to find out how many of the tests are passing.
-
-
-### Who do I talk to? ###
-
-* Email bistriceanu@iit.edu
