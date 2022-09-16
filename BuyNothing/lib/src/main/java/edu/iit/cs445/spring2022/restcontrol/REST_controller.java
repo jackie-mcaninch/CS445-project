@@ -450,7 +450,7 @@ public class REST_controller {
 			String s;
 			// if no keyword provided, display all accounts according to criteria and return 200 on success
 			if (key.equals("")) {
-				s = gson.toJson(bi.viewThanks(uid, is_active));
+				s = gson.toJson(bi.viewAllThanks());
 			}
 			// display all accounts within criteria and return 200 on success
 			else {
@@ -579,7 +579,7 @@ public class REST_controller {
 			String s;
 			// if no keyword provided, display all accounts according to criteria and return 200 on success
 			if (key.equals("")) {
-				s = bi.viewNotes(created_by_id, uid, type, agid);
+				s = gson.toJson(bi.viewNotes(created_by_id, uid, type, agid));
 			}
 			// display all notes within criteria and return 200 on success
 			else {

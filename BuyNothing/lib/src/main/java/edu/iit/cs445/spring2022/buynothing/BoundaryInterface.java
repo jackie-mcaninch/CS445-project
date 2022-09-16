@@ -35,7 +35,7 @@ public interface BoundaryInterface {
 	// THANK METHODS
 	Thank createThank(String uid, Thank t);
 	void updateThank(String old_id, Thank tnew);
-	List<Thank> viewThanks(String uid, String is_active);
+	List<Thank> viewAllThanks();
 	List<Thank> viewMyThanks(String uid, String is_active);
 	List<Thank> viewThanksForUser(String uid);
 	Thank viewThank(String tid);
@@ -45,7 +45,7 @@ public interface BoundaryInterface {
 	Note createNote(Note n);
 	void updateNote(String old_id, Note nnew);
 	void deleteNote(String uid, String nid);
-	String viewNotes(String c_by, String v_by, String type, String agid);
+	List<NoteGroup> viewNotes(String c_by, String v_by, String type, String agid);
 	Note viewNote(String nid);
 	List<Note> searchNotes(String key, String start_date, String end_date);
 

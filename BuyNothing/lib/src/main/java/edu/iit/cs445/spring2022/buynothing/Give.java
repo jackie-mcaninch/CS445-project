@@ -1,5 +1,6 @@
 package edu.iit.cs445.spring2022.buynothing;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class Give extends BuyNothingObj {
@@ -83,10 +84,6 @@ public class Give extends BuyNothingObj {
 	public boolean matchesID(String id) {
 		return this.gid.equals(id);
 	}
-
-	public boolean matchesAccountID(String acc_id) {
-		return (acc_id.equals(this.uid));
-	}
 	
 	public boolean checkForKeyword(String key) {
 		if (key.equalsIgnoreCase(this.type)) return true;
@@ -95,6 +92,17 @@ public class Give extends BuyNothingObj {
 			if (key.equalsIgnoreCase(zip)) return true;
 		}
 		return false;
+	}
+	
+	public boolean equals(Give g) {
+		if (g.isNil()) throw new NoSuchElementException();
+    	if (g.getType().equals(this.type) &&
+    		g.getDescription().equals(this.description) &&
+    		g.getStartDate().toString().equals(this.start_date.toString()) &&
+    		g.getEndDate().toString().equals(this.end_date.toString()) &&
+    		g.getExtraZip().equals(this.extra_zip))
+    		return true;
+    	else return false;
 	}
 	
 	public boolean isNil() {

@@ -3,6 +3,7 @@ package edu.iit.cs445.spring2022.buynothing;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -93,7 +94,6 @@ public class BuyNothingManager implements BoundaryInterface {
 		// delete all subordinate resources
 		deleteAskByAccountID(a.getID());
 		deleteGiveByAccountID(a.getID());
-		deleteThankByAccountID(a.getID());
 		deleteNoteByAccountID(a.getID());
     }
     
@@ -291,7 +291,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     	return my_asks;
     }
-    
+
     public Ask viewAsk(String aid) {
     	Ask a = findAskByID(aid);
     	if (a.isNil()) throw new NoSuchElementException("No ask found for ID: "+aid);
@@ -377,10 +377,11 @@ public class BuyNothingManager implements BoundaryInterface {
 		if (!acc_id.equals(g.getAccountID())) throw new AssertionError("Account ID does not match URI.");
 		checkMissingGiveInfo(g);
 		checkGiveType(g);
-		Give newGive = new Give(g);
-		allGives.add(newGive);
+		Give new_give = new Give(g);
+		new_give.create();
+		allGives.add(new_give);
 		g.activate();
-		return newGive;
+		return new_give;
 	}
 	
 	public Give deactivateGive(String uid, String gid) {
@@ -574,16 +575,6 @@ public class BuyNothingManager implements BoundaryInterface {
 		new_thank.activate();
 		return new_thank;
 	}
-
-	public Thank deactivateThank(String uid, String tid) {
-		Account acc = findAccountByID(uid);
-		Thank t = findThankByID(tid);
-		if (acc.isNil()) throw new NoSuchElementException("No account for ID: "+uid);
-		if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
-		if (!t.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
-		t.deactivate();
-    	return t;
-	}
 	
     public void updateThank(String old_id, Thank tnew) {
     	Thank told = findThankByID(old_id);
@@ -594,31 +585,7 @@ public class BuyNothingManager implements BoundaryInterface {
     	told.updateDescription(tnew.getDescription());
     }
     
-    public void deleteThank(String uid, String tid) {
-    	Thank t = findThankByID(tid);
-    	if (t.isNil()) throw new NoSuchElementException("No thank found for ID: "+tid);
-    	if (!t.getAccountID().equals(uid)) throw new AssertionError("Account ID does not match URI.");
-		allThanks.remove(t);
-		deleteNoteByToID(tid);
-    }
-    
-    public List<String> deleteThankByAccountID(String uid) {
-    	if (allThanks == null) {
-			allThanks = new ArrayList<Thank>();
-		}
-    	Iterator<Thank> thank_iter = allThanks.listIterator();
-    	List<String> deleted = new ArrayList<String>();
-    	while (thank_iter.hasNext()) {
-    		Thank t = thank_iter.next();
-    		if (t.getAccountID().equals(uid)) {
-    			deleteThank(uid, t.getID());
-        		deleted.add(t.getID());
-    		}
-    	}
-    	return deleted;
-    }
-    
-    public List<Thank> viewThanks(String uid, String is_active) {
+    public List<Thank> viewAllThanks() {
     	if (allThanks == null) {
 			allThanks = new ArrayList<Thank>();
 		}
@@ -634,20 +601,21 @@ public class BuyNothingManager implements BoundaryInterface {
     	Iterator<Thank> thank_iter = allThanks.listIterator();
     	while (thank_iter.hasNext()) {
     		Thank t = thank_iter.next();
-    		
-			switch (is_active) {
-				case "":
-					my_thanks.add(t);
-					break;
-				case "true":
-					if (t.getActiveStatus()) my_thanks.add(t);
-					break;
-				case "false":
-					if (!t.getActiveStatus()) my_thanks.add(t);
-					break;
-				default:
-					throw new AssertionError("Invalid value for parameter /'is_active/'.");
-			}
+    		if (uid.equals(t.getAccountID())) {
+    			switch (is_active) {
+					case "":
+						my_thanks.add(t);
+						break;
+					case "true":
+						if (t.getActiveStatus()) my_thanks.add(t);
+						break;
+					case "false":
+						if (!t.getActiveStatus()) my_thanks.add(t);
+						break;
+					default:
+						throw new AssertionError("Invalid value for parameter /'is_active/'.");
+				}
+    		}
     	}
     	return my_thanks;
     }
@@ -799,6 +767,9 @@ public class BuyNothingManager implements BoundaryInterface {
     }
     
     public void deleteNoteByToID(String to_id) {
+    	if (allNotes == null) {
+    		allNotes = new ArrayList<Note>();
+		}
     	Iterator<Note> note_iter = allNotes.listIterator();
     	List<String> deleted = new ArrayList<String>();
     	while (note_iter.hasNext()) {
@@ -815,33 +786,52 @@ public class BuyNothingManager implements BoundaryInterface {
     	}
     }
     
-    public String viewNotes(String c_by, String v_by, String type, String agid) {
+    public List<NoteGroup> viewNotes(String c_by, String v_by, String type, String agid) {
     	if (allNotes == null) {
     		allNotes = new ArrayList<Note>();
 			groupedNotes = new ArrayList<NoteGroup>();
 		}
-
-		// Iterator<Note> note_iter = allNotes.listIterator();
-		// Note n;
-		// while (note_iter.hasNext()) {
-		// 	n = note_iter.next();
-		// 	if (n.getAccountID().equals(v_by) || n.getToUserID().equals(v_by) || v_by.equals("")) {
-		// 		if (n.getToType().equals(type) || type.equals("")) {
-		// 			switch (n.getToType()) {
-		// 				case "give":
-		// 					break;
-		// 				case "ask":
-		// 					break;
-		// 				case "note":
-		// 					break;
-		// 				default:
-		// 					throw new AssertionError("Invalid to_type for Note: "+n.getToType());
-		// 			}
-		// 		}
-		// 	}
-		// }
-		Gson gson = new Gson();
-    	return gson.toJson(groupedNotes);
+//    	List<NoteGroup> subset = new ArrayList<NoteGroup>(groupedNotes);
+//		Iterator<NoteGroup> ng_iter = subset.listIterator();
+//		while (ng_iter.hasNext()) {
+//			NoteGroup ng = ng_iter.next();
+//			List<Conversation> convos = ng.getConversations();
+//			Iterator<Conversation> convo_iter = convos.listIterator();
+//			while (convo_iter.hasNext()) {
+//				Conversation c = convo_iter.next();
+//				List<Note> notes = c.getNotes();
+//				Iterator<Note> note_iter = notes.listIterator();
+//				while (note_iter.hasNext()) {
+//					Note n = note_iter.next();
+//					if (!n.getAccountID().equals(v_by) &&
+//						!n.getToUserID().equals(v_by) &&
+//						!v_by.equals("")) {
+//						if (!n.getToType().equals(type) &&
+//							!type.equals("")) {
+//							if (!n.getAccountID().equals(c_by) &&
+//			 					!n.getToUserID().equals(c_by) &&
+//			 					!c_by.equals("")) {
+//								if (n.getToType().equals("note")) {
+//									String origin_id = findOriginalSourceUID(n);
+//									if (!origin_id.equals(agid) &&
+//										!agid.equals("")) {
+//										c.removeNote(n);
+//									}
+//								}
+//								else {
+//									if (!n.getToID().equals(agid) &&
+//										!agid.equals("")) {
+//										c.removeNote(n);
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//				
+//			}
+//		}
+    	return groupedNotes;
     }
     
     public Note viewNote(String nid) {
@@ -969,15 +959,27 @@ public class BuyNothingManager implements BoundaryInterface {
 	}
 
 	public String generateReport(String rid, String c_by, String v_by, String start, String end) {
+		Gson gs = new Gson();
 		Report rep = findReportByID(rid);
+		Collection report_data = new ArrayList();
+		report_data.add("rid: "+rep.getID());
+		report_data.add("name: "+rep.getName());
+		report_data.add("c_by: "+c_by);
+		report_data.add("v_by: "+v_by);
+		report_data.add("start_date: "+start);
+		report_data.add("end_date: "+end);
+				
 		if (rep.getName().contains("zip")) {
-
+			report_data.add("asks: "+viewMyAsks(v_by, "").size());
+			report_data.add("gives: "+viewMyGives(v_by, "").size());
+			// zip iteration here
 		}
 		else if (rep.getName().contains("user")) {
-
+			report_data.add(gs.toJson(viewMyAsks(v_by, "")));
+			report_data.add(gs.toJson(viewMyGives(v_by, "")));
 		}
 		else throw new NoSuchElementException("Not a valid report.");
-		return "";
+		return gs.toJson(report_data);
 	}
 
 	public Report findReportByID(String rid) {

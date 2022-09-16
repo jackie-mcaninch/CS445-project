@@ -84,10 +84,6 @@ public class Ask extends BuyNothingObj {
 	public boolean matchesID(String aid) {
 		return this.aid.equals(aid);
 	}
-
-	public boolean matchesAccountID(String uid) {
-		return (uid.equals(this.uid));
-	}
 	
 	public boolean checkForKeyword(String key) {
 		if (key.equalsIgnoreCase(this.type)) return true;
